@@ -47,6 +47,20 @@ class Table_management extends CI_Controller {
 		echo json_encode($data);
 	}
 	
+	public function get_preview_tables(){
+		$user_data = $this->session->userdata;
+		$this->load->model('Model_tables');
+		$data = $this->Model_tables->get_preview_tables($user_data['id']);
+		echo json_encode($data);
+	}
+	
+	public function get_reservation_times(){
+		$user_data = $this->session->userdata;
+		$this->load->model('Model_tables');
+		$data = $this->Model_tables->get_reservation_times($user_data['id']);
+		echo json_encode($data);
+	}
+	
 	public function add_table(){
 		$user_data = $this->session->userdata;
 		$this->load->model('Model_tables');
@@ -60,7 +74,15 @@ class Table_management extends CI_Controller {
 		$section = $this->input->post('section');
 		$data = $this->Model_tables->add_table($user_data['id'],$table_id,$num_chairs,$top_pos,
 			$left_pos,$size,$orientation,$type,$section);
-		echo $data;
+		echo json_encode($data);
+	}
+	
+	public function add_section(){
+		$user_data = $this->session->userdata;
+		$this->load->model('Model_tables');
+		$section_name= $this->input->post('section_name');
+		$data = $this->Model_tables->add_section($user_data['id'],$section_name);
+		echo json_encode($data);
 	}
 	
 	public function update_table(){
@@ -72,6 +94,15 @@ class Table_management extends CI_Controller {
 		echo $result;
 	}
 	
+	public function update_section(){
+		$user_data = $this->session->userdata;
+		$this->load->model('Model_tables');
+		$data = $this->input->post('data');
+		$data = json_decode($data);
+		$result = $this->Model_tables->update_section($data,$user_data['id']);
+		echo $result;
+	}
+	
 	public function delete_table(){
 		$user_data = $this->session->userdata;
 		$this->load->model('Model_tables');
@@ -80,11 +111,18 @@ class Table_management extends CI_Controller {
 		echo $result;
 	}
 	
+	public function delete_section(){
+		$this->load->model('Model_tables');
+		$id = $this->input->post('id');
+		$result = $this->Model_tables->delete_section($id);
+		echo $result;
+	}
+	
 	public function test(){
 		$user_data = $this->session->userdata;
 		$this->load->model('Model_tables');
 		$data = $this->Model_tables->test($user_data['id']);
-		print_r($data);
+		var_dump($data);
 	}
 	
 }

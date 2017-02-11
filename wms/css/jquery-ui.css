@@ -67,6 +67,7 @@
 
 /* Icons
 ----------------------------------*/
+/*
 .ui-icon {
 	display: inline-block;
 	vertical-align: middle;
@@ -76,7 +77,7 @@
 	overflow: hidden;
 	background-repeat: no-repeat;
 }
-
+*/
 .ui-widget-icon-block {
 	left: 50%;
 	margin-left: -8px;
@@ -399,6 +400,7 @@ button.ui-button::-moz-focus-inner {
 .ui-checkboxradio-disabled {
 	pointer-events: none;
 }
+
 .ui-datepicker {
 	width: 17em;
 	padding: .2em .2em 0;
@@ -440,6 +442,8 @@ button.ui-button::-moz-focus-inner {
 	top: 50%;
 	margin-top: -8px;
 }
+
+
 .ui-datepicker .ui-datepicker-title {
 	margin: 0 2.3em;
 	line-height: 1.8em;
@@ -530,6 +534,8 @@ button.ui-button::-moz-focus-inner {
 }
 
 /* RTL support */
+
+
 .ui-datepicker-rtl {
 	direction: rtl;
 }
@@ -564,6 +570,8 @@ button.ui-button::-moz-focus-inner {
 	border-right-width: 0;
 	border-left-width: 1px;
 }
+
+
 
 /* Icons */
 .ui-datepicker .ui-icon {
@@ -925,8 +933,10 @@ body .ui-tooltip {
 .ui-widget-header .ui-state-default,
 .ui-button,
 
+
 /* We use html here because we need a greater specificity to make sure disabled
 works properly when clicked or hovered */
+/*
 html .ui-button.ui-state-disabled:hover,
 html .ui-button.ui-state-disabled:active {
 	border: 1px solid #c5c5c5;
@@ -996,9 +1006,11 @@ a.ui-button:active,
 	color: #ffffff;
 	text-decoration: none;
 }
+*/
 
 /* Interaction Cues
 ----------------------------------*/
+/*
 .ui-state-highlight,
 .ui-widget-content .ui-state-highlight,
 .ui-widget-header .ui-state-highlight {
@@ -1037,6 +1049,7 @@ a.ui-button:active,
 .ui-widget-header .ui-priority-primary {
 	font-weight: bold;
 }
+*/
 .ui-priority-secondary,
 .ui-widget-content .ui-priority-secondary,
 .ui-widget-header .ui-priority-secondary {
@@ -1054,6 +1067,7 @@ a.ui-button:active,
 .ui-state-disabled .ui-icon {
 	filter:Alpha(Opacity=35); /* support: IE8 - See #6059 */
 }
+
 
 /* Icons
 ----------------------------------*/
@@ -1160,6 +1174,7 @@ a.ui-button:active,
 .ui-icon-arrowrefresh-1-s { background-position: -176px -64px; }
 .ui-icon-arrow-4 { background-position: 0 -80px; }
 .ui-icon-arrow-4-diag { background-position: -16px -80px; }
+
 .ui-icon-extlink { background-position: -32px -80px; }
 .ui-icon-newwin { background-position: -48px -80px; }
 .ui-icon-refresh { background-position: -64px -80px; }
@@ -1226,10 +1241,13 @@ a.ui-button:active,
 .ui-icon-pin-s { background-position: -144px -144px; }
 .ui-icon-play { background-position: 0 -160px; }
 .ui-icon-pause { background-position: -16px -160px; }
+
 .ui-icon-seek-next { background-position: -32px -160px; }
 .ui-icon-seek-prev { background-position: -48px -160px; }
 .ui-icon-seek-end { background-position: -64px -160px; }
 .ui-icon-seek-start { background-position: -80px -160px; }
+
+
 /* ui-icon-seek-first is deprecated, use ui-icon-seek-start instead */
 .ui-icon-seek-first { background-position: -80px -160px; }
 .ui-icon-stop { background-position: -96px -160px; }
@@ -1246,10 +1264,12 @@ a.ui-button:active,
 .ui-icon-circle-plus { background-position: 0 -192px; }
 .ui-icon-circle-minus { background-position: -16px -192px; }
 .ui-icon-circle-close { background-position: -32px -192px; }
+/*
 .ui-icon-circle-triangle-e { background-position: -48px -192px; }
 .ui-icon-circle-triangle-s { background-position: -64px -192px; }
 .ui-icon-circle-triangle-w { background-position: -80px -192px; }
 .ui-icon-circle-triangle-n { background-position: -96px -192px; }
+*/
 .ui-icon-circle-arrow-e { background-position: -112px -192px; }
 .ui-icon-circle-arrow-s { background-position: -128px -192px; }
 .ui-icon-circle-arrow-w { background-position: -144px -192px; }

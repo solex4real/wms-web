@@ -7,19 +7,17 @@
 <title>WMS WEB</title>
 <link rel="icon" href="<?= base_url();?>wms/images/icons/logo-small.png">
 
-<!-- My Style -->
-<link href="<?= base_url();?>wms/css/style.css" 
-	rel="stylesheet">
+
 
 
 <!-- Vendor CSS -->
 <link href="<?= base_url();?>material/vendors/bootgrid/jquery.bootgrid.min.css" 
 	rel="stylesheet">
 <link
-	href="<?= base_url();?>material/vendors/fullcalendar/fullcalendar.css"
+	href="<?= base_url();?>material/vendors/animate-css/animate.min.css"
 	rel="stylesheet">
 <link
-	href="<?= base_url();?>material/vendors/animate-css/animate.min.css"
+	href="<?= base_url();?>material/vendors/fullcalendar/fullcalendar.css"
 	rel="stylesheet">
 <link
 	href="<?= base_url();?>material/vendors/sweet-alert/sweet-alert.min.css"
@@ -40,7 +38,9 @@
 	rel="stylesheet">
 <link href="<?= base_url();?>material/css/app.min.2.css"
 	rel="stylesheet">
-
+<!-- My CSS -->
+<link href="<?= base_url();?>wms/css/style.css" 
+	rel="stylesheet">
 
 </head>
 <body>

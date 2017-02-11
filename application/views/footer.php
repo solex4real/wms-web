@@ -290,7 +290,7 @@
 							"</div>"+
 							"</a>";
 						}
-						console.log(data);
+						//console.log(data);
 						var notificationDiv = document.getElementById("notification-list");
 						var notificationCountDiv = document.getElementById("notification-count");
 						notificationDiv.innerHTML += data;
@@ -309,7 +309,7 @@
 					data: {'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'},
 					success: function (json){
 						//Parse Json data
-						console.log(json);
+						//console.log(json);
 						json = JSON.parse(json);
 						var len2 = json.length;
 						//var dateFormat = require('dateformat');

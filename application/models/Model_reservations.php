@@ -85,6 +85,52 @@ class Model_reservations extends CI_Model {
 		//return $this->db->last_query();
 	}
 	
+	public function get_inline_customers($restaurant_id){
+		$this->db->select('reservation.*,users.name,users.icon_path');
+		$this->db->from('reservation');
+		$this->db->join('users','reservation.user_id = users.id','inner');
+		$this->db->where('reservation.restaurant_id',$restaurant_id);
+		$this->db->where('reservation.status',1);
+		$query = $this->db->get();
+		return $query->result();
+	}
+	
+	public function get_onhold_customers($restaurant_id){
+		$this->db->select('reservation.*,users.name,users.icon_path');
+		$this->db->from('reservation');
+		$this->db->join('users','reservation.user_id = users.id','inner');
+		$this->db->where('reservation.restaurant_id',$restaurant_id);
+		$this->db->where('reservation.status',1);
+		$query = $this->db->get();
+		return $query->result();
+	}
+	
+	public function get_server_assignment($restaurant_id){
+		//Sub query of reservered tables
+		$this->db->select('GROUP_CONCAT(reservation_tables.table_size SEPARATOR "-") as table_size, 
+		reservation_tables.reservation_id, reservation_tables.restaurant_id');
+		$this->db->from('reservation_tables');
+		$this->db->where('reservation_tables.restaurant_id ',$restaurant_id);
+		$this->db->group_by('reservation_tables.reservation_id');
+		$subQuery =  $this->db->get_compiled_select();
+		
+		$this->db->select('GROUP_CONCAT(reservation_tables.table_size),reservation.server_id,
+		GROUP_CONCAT(reservation.user_id), GROUP_CONCAT(u.icon_path) as user_icon_path, 
+		GROUP_CONCAT(u.name) as user_name, s.name as server_name,
+		s.icon_path as server_icon_path, GROUP_CONCAT(reservation.reservation_id),
+		');
+		$this->db->from('reservation');
+		$this->db->join("($subQuery) as reservation_tables",'reservation.reservation_id = reservation_tables.reservation_id','left');
+		$this->db->join('users as u','reservation.user_id = u.id');
+		$this->db->join('users as s','reservation.server_id = s.id', 'inner');
+		
+		$this->db->where('reservation.restaurant_id',$restaurant_id);
+		$this->db->group_by('reservation.server_id');
+		$query = $this->db->get(); 
+		return $query->result();
+		//return $this->db->last_query();
+	}
+	
 	public function get_today_reservations($restaurant_id,$current_page,$search_data,$order){
 		
 		$limit = 10;

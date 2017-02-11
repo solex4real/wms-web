@@ -55,7 +55,7 @@ class Reservations extends CI_Controller {
 		$this->load->model('model_reservations');
 		$user_data = $this->session->userdata;
 		//$query = $this->model_reservations->get_reservations(2000000,1,"","desc");
-		$query = $this->model_reservations->get_current_reservations($user_data['id']);
+		$query = $this->model_reservations->get_server_assignment($user_data['id']);
 		//echo count(array())==0;
 		//var_dump($query);
 		print_r($query);
@@ -65,6 +65,27 @@ class Reservations extends CI_Controller {
 		$this->load->model('model_reservations');
 		$user_data = $this->session->userdata;
 		$query = $this->model_reservations->get_current_reservations($user_data['id']);
+		echo json_encode($query);
+	}
+	
+	public function get_inline_reservations(){
+		$this->load->model('model_reservations');
+		$user_data = $this->session->userdata;
+		$query = $this->model_reservations->get_inline_customers($user_data['id']);
+		echo json_encode($query);
+	}
+	
+	public function get_onhold_customers(){
+		$this->load->model('model_reservations');
+		$user_data = $this->session->userdata;
+		$query = $this->model_reservations->get_onhold_customers($user_data['id']);
+		echo json_encode($query);
+	}
+	
+	public function get_server_assignment(){
+		$this->load->model('model_reservations');
+		$user_data = $this->session->userdata;
+		$query = $this->model_reservations->get_server_assignment($user_data['id']);
 		echo json_encode($query);
 	}
 	

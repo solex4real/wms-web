@@ -1,7 +1,40 @@
-#section-table-container{
-	height: 700px;
+#delete-table{
+	margin-bottom: -105px;
 }
 
+.table-container{
+	height: 700px;
+	width: 820px;
+	padding-bottom: 10px;
+}
+
+.schedule-container{
+	margin-top: 60px;
+}
+
+.res-info-area{
+	z-index:5;
+	width: 50px;
+	height: 100%;
+	left: 40%;
+	display:table;
+	position: absolute;
+}
+.vmiddle{
+	display:table-cell;
+	vertical-align:middle;
+}
+
+.res-progress{
+		width:100%;
+		margin-left:0%;
+}
+
+.vcenter {
+    display: inline-block;
+    vertical-align: middle;
+    float: none;
+}
 
 .table-list-panel{
 	height: 500px;
@@ -17,24 +50,26 @@
 
 .chip {
     display: inline-block;
-    padding: 0 25px;
-    height: 50px;
-    font-size: 16px;
-    line-height: 50px;
-    border-radius: 25px;
+    padding: 0 10px;
+    height: 30px;
+    font-size: 12px;
+	text-overflow:ellipsis;
+	overflow:hidden;
+    line-height: 30px;
+    border-radius: 15px;
     background-color: #f1f1f1;
 }
 
 .chip img {
     float: left;
-    margin: 0 10px 0 -25px;
-    height: 50px;
-    width: 50px;
+    margin: 0 10px 0 -10px;
+    height: 30px;
+    width: 30px;
     border-radius: 50%;
 }
 
 .closebtn {
-    padding-left: 10px;
+    padding-left: 5px;
     color: #888;
     font-weight: bold;
     float: right;
