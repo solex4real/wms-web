@@ -60,12 +60,12 @@
 					$view_icon_ser = array('md md-home','md md-format-underline','d md-today','md md-settings');
 										
 					//$view_name_res = array("Home","Orders","Reservations","Products","Servers","Customers","Calendar","Settings");
-					$view_name_res = array("Home","Reservations","Servers","Customers","Calendar","Settings");
+					$view_name_res = array("Home","Reservations","Table Management","Servers","Customers","Calendar","Settings");
 					//$view_ref_res = array("home","orders","reservations","products","servers","customers","calendar","settings");
-					$view_ref_res = array("home","reservations","servers","customers","calendar","settings");
+					$view_ref_res = array("home","reservations","table_management","servers","customers","calendar","settings");
 					//$view_icon_res = array('md md-home','md md-format-underline','md md-local-restaurant',
 					//'md md-loyalty','md md-person','md md-people','md md-today','md md-settings');
-					$view_icon_res = array('md md-home','md md-local-restaurant',
+					$view_icon_res = array('md md-home','md md-local-restaurant','md md-format-underline',
 					'md md-person','md md-people','md md-today','md md-settings');
 					
 					if($user_data['type']==='user'){

@@ -61,6 +61,24 @@ class Reservations extends CI_Controller {
 		print_r($query);
 	}
 	
+	public function name_autocomplete() {
+		$user_data = $this->session->userdata;
+		$search_data = $this->input->post('search_data');
+		$this->load->model('model_reservations');
+		$data = $this->model_reservations->get_name_autocomplete($user_data['id'],$search_data);
+		foreach ($data as $row):
+		echo "<div><a data-reservation-id='" . $row->reservation_id ."' 
+		data-reservation-customer-size='".$row->customer_size."'
+		data-turn-time='".$row->turn_time."'
+		data-table-ids='".$row->table_ids."'
+		data-server-id='".$row->server_id."'
+		data-user-id='".$row->user_id."'
+		data-name='".$row->name."'
+		onclick='checkinAutocompleteAction(this);'
+		class='list-group-item '>".$row->name ."</a></div>";
+		endforeach;
+	}
+	
 	public function get_current_reservations(){
 		$this->load->model('model_reservations');
 		$user_data = $this->session->userdata;
@@ -174,6 +192,16 @@ class Reservations extends CI_Controller {
 		$data = $this->Model_reservations->get_user_reservations($user_id,$current_page,$search_data,$sort->reservation_id);	
 		//print_r(json_decode(json_encode($data['rows'])));
 		echo json_encode($data);
+	}
+	
+	public function change_tables(){
+		$user_data = $this->session->userdata;
+		$this->load->model('Model_reservations');
+		$tables = $this->input->post('tables');
+		$reservation_guest_id = $this->input->post('reservation_guest_id');
+		$tables = json_decode($tables);
+		$result = $this->Model_reservations->change_tables($user_data['id'],$reservation_id,$tables);
+		echo json_encode($result);
 	}
 	
 	public function add_reservation(){

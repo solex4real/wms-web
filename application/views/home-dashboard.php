@@ -113,6 +113,7 @@
 			</div>
         </div>
                         <div class="listview">
+						<div class="lv-body" id="available-server-list">
 						<?php 
 							//Show avialable servers
 							foreach($available_servers as $row){
@@ -130,7 +131,8 @@
 								echo "</a>";
 							}
 						?>
-						</div>		
+						</div>	
+					</div>						
 		</div>
 		
 		

@@ -1,5 +1,8 @@
 <div class="listview">
 	<div class="lv-body c-overflow row-fluid table-list-panel">
+		<div class="grid col-sm-12 m-b-5">
+			<button class="col-sm-12 btn btn-primary" onclick="checkinUser()"><i class="md md-add "></i> Check-In Customer</button>
+		</div>
 		<div class="row text-left m-5 col-sm-12">
             <p class="c-black">Select Sections</p>                   
             <select class="selectpicker" id="sec_list" name="name_list" data-live-search="true" multiple>

@@ -25,10 +25,13 @@ class Table_management extends CI_Controller {
 			//echo "Pass";
 			$user_data = $this->session->userdata;
 			$this->load->model('Model_tables');
+			$this->load->model('Model_servers');
+			$servers = $this->Model_servers->get_servers($user_data['id']);
 			$data = array(
 					'user_data' => $user_data,
 					'name' => $user_data['name'],
-					'view' => 'Customers',
+					'view' => 'Table Management',
+					'servers'=>$servers,
 					'sections'=> $this->Model_tables->get_sections($user_data['id']),
 					'icon_path'=>$user_data['icon_path']
 			);

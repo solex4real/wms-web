@@ -149,6 +149,7 @@
  <script src="<?= base_url();?>material/js/flot-charts/curved-line-chart.js"></script>
  <script src="<?= base_url();?>material/js/flot-charts/line-chart.js"></script>
 <script src="<?= base_url();?>material/vendors/bootgrid/jquery.bootgrid.min.js"></script>
+<script src="<?= base_url();?>material/vendors/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js"></script>
 	
 <script src="<?= base_url();?>material/js/charts.js"></script>
 <script src="<?= base_url();?>material/js/functions.js"></script>

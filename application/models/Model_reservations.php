@@ -114,7 +114,7 @@ class Model_reservations extends CI_Model {
 		$this->db->group_by('reservation_tables.reservation_id');
 		$subQuery =  $this->db->get_compiled_select();
 		
-		$this->db->select('GROUP_CONCAT(reservation_tables.table_size),reservation.server_id,
+		$this->db->select('GROUP_CONCAT(reservation_tables.table_size) as table_size,reservation.server_id,
 		GROUP_CONCAT(reservation.user_id), GROUP_CONCAT(u.icon_path) as user_icon_path, 
 		GROUP_CONCAT(u.name) as user_name, s.name as server_name,
 		s.icon_path as server_icon_path, GROUP_CONCAT(reservation.reservation_id),
@@ -194,12 +194,65 @@ class Model_reservations extends CI_Model {
 		return $data;
 	}
 	
+	public function get_name_autocomplete($restaurant_id,$search_data){
+		$limit = 10;
+		$this->db->select('reservation.reservation_id, reservation.reservation_time,
+			GROUP_CONCAT(reservation_tables.table_id) as table_ids, reservation.customer_size,
+			reservation.server_id, reservation.user_id, reservation.turn_time, users.name
+		');
+		$this->db->from('reservation');
+		$this->db->join('users', 'reservation.user_id = users.id','inner');
+		$this->db->join('reservation_tables', 'reservation.reservation_id = reservation_tables.reservation_id','left');
+		$this->db->where('reservation.restaurant_id',$restaurant_id);
+		$this->db->like('users.name',$search_data);
+		$this->db->limit($limit);
+		$query = $this->db->get();
+		
+		return $query->result();
+	}
+	
 	public function get_reservation_count($restaurant_id){
 		$data = array();
 		$date = date('Y-m-d');
 		$data['total'] = $this->db->where('restaurant_id', $restaurant_id)->count_all_results('reservation');
 		$data['total-today'] = $this->db->where('restaurant_id', $restaurant_id)->like('reservation.reservation_time',$date)->count_all_results('reservation');
 		return $data;
+	}
+	
+	public function change_tables($restaurant_id,$reservation_id,$tables){
+		//Get tables from array
+		$this->db->select('table_id');
+		$this->db->where('restaurant_id',$restaurant_id);
+		$this->db->where('reservation_id',$reservation_id);
+		$query = $this->db->get('reservation_tables');
+		$current_tables = array();
+		foreach($query->result() as $row){
+			array_push($current_tables, $row->table_id);
+		}
+		$i = 0;
+		
+		//Add table if id does not exist in database
+		foreach($tables as $row){
+			if(($key = array_search($row['table_id'], $current_tables)) !== false){
+				unset($current_tables[$key]);
+			}else{
+				$table = array('table_id'=>$row['table_id'],
+				'restaurant_id'=>$restaurant_id,
+				'reservation_id'=>$reservation_id,
+				'reservation_id'=>0);
+				$this->db->insert('reservation_tables',$table);
+			}
+		$i++;		
+		}
+		//Remove tables of id's from database that does not exsist in list
+		foreach($current_tables as $row){
+			$this->db->where(array('restaurant_id'=>$restaurant_id,
+			'reservation_id'=>$reservation_id,
+			'table_id'=>$row
+			));
+			$this->db->delete('reservation_tables');
+		}
+		return true;
 	}
 	
 	public function get_assigned_tables($tables,$table_amount,$customer_size_defined){

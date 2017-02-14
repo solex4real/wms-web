@@ -134,6 +134,8 @@
 	src="<?= base_url();?>material/vendors/bootstrap-growl/bootstrap-growl.min.js"></script>
 <script
 	src="<?= base_url();?>material/vendors/sweet-alert/sweet-alert.min.js"></script>
+<script 
+src="<?= base_url();?>material/vendors/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js"></script>
 <script src="<?= base_url();?>material/js/functions.js"></script>
 <script src="<?= base_url();?>material/js/demo.js"></script>
 
@@ -141,6 +143,7 @@
 <link href="<?= base_url();?>wms/css/jquery-ui.css" rel="stylesheet">
 
 <script src="<?= base_url();?>wms/js/jquery-ui.js"></script>
+<script src="<?= base_url();?>wms/js/initial.js-master/initial.js"></script>
 
 <script src="<?= base_url();?>wms/js/jquery-ui-rotate.js"></script>
 
@@ -148,10 +151,17 @@
 <link href="<?= base_url();?>wms/css/css-percentage-circle-master/css/circle.css" rel="stylesheet">
 	
 <script type="text/javascript">
+//Define Global parameters
+var tables = [];
 var droppable = "";
 var droppable_params = {};
 var action_performed = false;
 var draggable_array_id = [];
+var current_list_tables = []; //Id list for table progress bar
+var waiting_list_customers = []; //Id list for customers on waiting list
+var current_list_customers = []; //Id list for current/seated customers
+var assignment_list_servers = []; //Id list of server assignment for tables and customers
+var onhold_list_customers = []; //Id list for cust onhold
 var draggable_action = function(){
 	if(!action_performed){
 		var table_id = $(this).data("table-id");
@@ -474,6 +484,7 @@ function updateTable(data){
 			var len = json.length;
 			var droppable_id = "";
 			var section_div = "";
+			tables = json;
 			var sectionContainer = document.getElementById("static-table-container");
 			for (i = 0; i < len; i++) {
 				//Setup droppable
@@ -495,6 +506,8 @@ function updateTable(data){
 				'-o-transform': 'rotate('+rotationAngle+'deg)',   /* Opera */
 				'transform': 'rotate('+rotationAngle+'deg)'
 				});
+				//Define table id
+				cloned.attr('id','res-table-id-'+json[i].table_id);
 				//Table info data display
 				var table_data = 
 				"<div class='row res-info-area' >"+
@@ -526,6 +539,7 @@ function updateTable(data){
 					cloned.removeClass('bgm-green').addClass(status_color[json[i].status]);
 					cloned.children("div:first").removeClass('bgm-teal').addClass(status_color[json[i].status]);
 				}else{
+					//Add data for tables that are occupied
 					var turn_data = get_turn_time_percent(json[i].arrival_time,json[i].turn_time_val);
 					table_data +=
 					"<div class='res-progress progress text-center' >"+
@@ -533,9 +547,11 @@ function updateTable(data){
 					"</div>"+
 					//"<small class='c-gray col-sm-12 text-center'>3</small>"+
 					"</div></div>";
-					cloned.data('is-occupied',false);
+					cloned.data('is-occupied',true);
 					cloned.removeClass('bgm-green').addClass('bgm-green');
 					cloned.children("div:first").removeClass('bgm-teal').addClass('bgm-green');
+					//Add table to current tables in use list
+					current_list_tables.push(cloned.attr('id'));
 				}
 				
 				//Enable clickable event for table div
@@ -554,11 +570,86 @@ function updateTable(data){
  showTables();
  
  //Update table status based on time lapse
- timeRange = 3; //one minute interval
- i = 0;
- var resCounter = setInterval(function(){
-	//console.log(i++); 
- },1000);
+ var refreshRate = 3; //one minute interval
+ var a = 0;
+ var resCounter = setInterval(function(){ 
+	//Count down for tables
+	len = current_list_tables.length;
+	for(i = 0;i < len;i++){
+		if(a <= 100){
+			//Begin progress bar
+			b = $('#'+current_list_tables[i]).children("div:first").
+			children("div:first").children("div:first").children("div:first");
+			//console.log(b.css('width'));
+			b.css({'width':a+'%'});
+			a = a + 10;
+		}else{
+			//Remove progress bar from
+			$('#'+current_list_tables[i]).children("div:first").
+			children("div:first").children("div:first").remove();
+			//Set is occupied to false
+			$('#'+current_list_tables[i]).data('is-occupied',false);
+			//Change color of table
+			$('#'+current_list_tables[i]).removeClass('bgm-green').addClass('bgm-orange');
+			$('#'+current_list_tables[i]).children("div:eq(1)").removeClass('bgm-green').addClass('bgm-orange');
+		}
+	}
+	
+	//Count down for current customers sitted
+	len = current_list_customers.length;
+	//Create new list for current customers
+	new_current_list_customers = current_list_customers;
+	//console.log(new_current_list_customers);
+	for(i = 0;i < len;i++){
+		b = $('#'+current_list_customers[i]);
+		arrival_time = b.data('arrival-time');
+		turn_time = b.data('turn-time');
+		var time_data = get_turn_time_percent(arrival_time,turn_time);
+		//console.log({'arrival: ':arrival_time,'turn time: ':turn_time});
+		b.find('span').html(time_data.minutes+"M");
+		b.find('span').parent().removeClass().addClass('c100 p'+time_data.ratio+' tiny');
+		//Remove customer from list if completed
+		if(time_data.minutes==0){
+			index = new_current_list_customers.indexOf(current_list_customers[i]);
+			if(index > -1){
+				new_current_list_customers.splice(index,1);
+			}
+			//Remove from server assignment list view
+			$('#server-assignment-customer-'+b.data('user-id')).remove();
+			//Remove from current/seated customer list view
+			b.remove();
+		}
+	}
+	//Update current customer list
+	current_list_customers = new_current_list_customers;
+
+	//Countdown for costumers on wait list
+	len = waiting_list_customers.length;
+	for(i = 0;i < len; i++){
+		var now  = moment().format("DD/MM/YYYY HH:mm:ss");
+		var then = $('#'+waiting_list_customers[i]).data('arrival-time');
+
+		var ms = moment(now,'DD/MM/YYYY HH:mm:ss').diff(moment(then,'YYYY-MM-DD h:mm:ss'));
+		var d = moment.duration(ms);
+		var s = Math.floor(d.asHours()) + moment.utc(ms).format(":mm:ss");
+		b = $('#'+waiting_list_customers[i]).children("div:first").children("div:eq(1)").children("small:first");
+		b.html("Wait Time: "+s);
+	}
+	
+	//Countdown for costumers onhold
+	len = onhold_list_customers.length;
+	for(i = 0;i < len; i++){
+		var now  = moment().format("DD/MM/YYYY HH:mm:ss");
+		var then = $('#'+onhold_list_customers[i]).data('reservation-time');
+
+		var ms = moment(now,'DD/MM/YYYY HH:mm:ss').diff(moment(then,'YYYY-MM-DD h:mm:ss'));
+		var d = moment.duration(ms);
+		var s = Math.floor(d.asHours()) + moment.utc(ms).format(":mm:ss");
+		b = $('#'+onhold_list_customers[i]).children("div:first").children("div:eq(1)").children("small:first");
+		b.html("Hold Time: "+s);
+	}
+	
+ },1000*refreshRate);
  
  function showEditTables(){
 	 //load restaurant tables
@@ -578,22 +669,9 @@ function updateTable(data){
 				//Setup droppable
 				if(droppable_id != json[i].section_id){
 					droppable_id = json[i].section_id;
-					/*
-					//Add new droppable to div
-					section_div = 
-					"<div id='section-block-"+droppable_id+"' >"
-					+"<div class='block-header p-t-20 p-static'>"
-					+"<h2>"+json[i].section_name+"</h2></div>"
-					+"<div class='card'>"
-					+"<div id='droppable-"+json[i].section_id+"' class='card ui-widget-header droppable-layout custom-droppable bgm-gray'>"
-					+"</div></div>"
-					+"</div>";
-					sectionContainer.innerHTML += section_div;
-					*/
 					droppable = $("#droppable-"+droppable_id).droppable(droppable_params);
 				}
-				
-				
+			
 				rotationAngle = parseInt(json[i].orientation);
 				//console.log("Orientation: "+rotationAngle);
 				//Original height
@@ -901,15 +979,18 @@ function loadReservations(){
 			var listContainer = document.getElementById("current-reservation-list");
 			var div = "";
 			for (i = 0; i < len; i++) {
+				var turn_time_data = get_turn_time_percent(json[i].arrival_time,json[i].turn_time_val);
+				//console.log({'arrival: ':json[i].arrival_time,'turn: ':json[i].turn_time_val});
 				div += 
-				"<a class='lv-item' >"+
+				"<a id='current-reservation-"+json[i].reservation_id+"' class='lv-item' data-user-id='"+json[i].user_id+"'"+
+				"data-arrival-time='"+json[i].arrival_time+"' data-turn-time='"+json[i].turn_time_val+"'>"+
 				"<div class='media'>"+
 				"<div class='pull-left'>"+
-				"<img class='lv-img-sm' src='"+"<?php echo base_url();?>"+json[i].icon_path+"' >"+
+				"<img class='lv-img-sm' data-name='"+json[i].name+"' onerror='onImgError(this)' src='"+"<?php echo base_url();?>"+json[i].icon_path+"' >"+
                 "</div>"+
 				"<div class='pull-right'>"+
-				"<div class='c100 p"+get_turn_time_percent(json[i].arrival_time,json[i].turn_time_val).ratio+" tiny'>"+
-				"<span>"+get_turn_time_percent(json[i].arrival_time,json[i].turn_time_val).minutes+"M</span>"+
+				"<div class='c100 p"+turn_time_data.ratio+" tiny'>"+
+				"<span>"+turn_time_data.minutes+"M</span>"+
 				"<div class='slice'>"+
 				"<div class='bar'></div>"+
 				"<div class='fill'></div>"+
@@ -923,6 +1004,8 @@ function loadReservations(){
                 "</div>"+
 				"</div>"+
 				"</a>";
+				//Add to current costumer list
+				current_list_customers.push("current-reservation-"+json[i].reservation_id);
 				//console.log(get_turn_time_percent(json[i].arrival_time,json[i].turn_time_val));
 			}
 			listContainer.innerHTML += div;
@@ -958,10 +1041,10 @@ function loadInLineCustomers(){
 				var s = Math.floor(d.asHours()) + moment.utc(ms).format(":mm:ss");
 
 				div += 
-				"<a class='lv-item' >"+
+				"<a id='inline-reservation-"+json[i].reservation_id+"' data-arrival-time='"+json[i].arrival_time+"' class='lv-item' >"+
 				"<div class='media'>"+
 				"<div class='pull-left'>"+
-				"<img class='lv-img-sm' src='"+"<?php echo base_url();?>"+json[i].icon_path+"' >"+
+				"<img class='lv-img-sm' data-name='"+json[i].name+"' onerror='onImgError(this)' src='"+"<?php echo base_url();?>"+json[i].icon_path+"' >"+
                 "</div>"+
                 "<div class='media-body text-left'>"+
                 "<div class='lv-title'>"+json[i].name+"</div>"+
@@ -970,6 +1053,9 @@ function loadInLineCustomers(){
                 "</div>"+
 				"</div>"+
 				"</a>";
+				//Add Id to waiting costumer list
+				waiting_list_customers.push("inline-reservation-"+json[i].reservation_id);
+				
 				//console.log(get_turn_time_percent(json[i].arrival_time,json[i].turn_time_val));
 			}
 			listContainer.innerHTML += div;
@@ -1005,10 +1091,10 @@ function loadOnholdCustomers(){
 				var s = Math.floor(d.asHours()) + moment.utc(ms).format(":mm:ss");
 
 				div += 
-				"<a class='lv-item' >"+
+				"<a id='onhold-customer-"+json[i].reservation_id+"' data-reservation-time='"+json[i].reservation_time+"' class='lv-item' >"+
 				"<div class='media'>"+
 				"<div class='pull-left'>"+
-				"<img class='lv-img-sm' src='"+"<?php echo base_url();?>"+json[i].icon_path+"' >"+
+				"<img data-name='"+json[i].name+"' onerror='onImgError(this)' class='lv-img-sm' src='"+"<?php echo base_url();?>"+json[i].icon_path+"' >"+
                 "</div>"+
                 "<div class='media-body text-left'>"+
                 "<div class='lv-title'>"+json[i].name+"</div>"+
@@ -1017,6 +1103,9 @@ function loadOnholdCustomers(){
                 "</div>"+
 				"</div>"+
 				"</a>";
+				//Add onhold costumers to onhold list
+				onhold_list_customers.push("onhold-customer-"+json[i].reservation_id);
+				
 				//console.log(get_turn_time_percent(json[i].arrival_time,json[i].turn_time_val));
 			}
 			listContainer.innerHTML += div;
@@ -1050,10 +1139,10 @@ function loadServerAssignment(){
 				for(j = 0; j < user_name.length; j++){
 					user_icon_path = json[i].user_icon_path.split(','); 
 					innerDiv +=
-					"<div class='chip'>"+
-					"<img src='"+"<?php echo base_url();?>"+user_icon_path[j]+"' alt='Person' width='20' height='20'>"+
-					user_name[j]+
-					"<span class='closebtn' onclick=this.parentElement.style.display='none'>&times;</span>"+
+					"<div id='server-assignment-customer-"+json[i].user_id+"' class='chip'>"+
+					"<img data-name='"+json[i].user_name+"' onerror='onImgError(this)' src='"+"<?php echo base_url();?>"+user_icon_path[j]+"' alt='Person' width='20' height='20'>"+
+					user_name[j]+"<span class='c-gray'>: "+json[i].table_size+"</span>"+
+					//"<span class='closebtn' onclick=this.parentElement.style.display='none'>&times;</span>"+
 					"</div>";
 				}
 				
@@ -1084,6 +1173,126 @@ function loadServerAssignment(){
 	});
 }
 
+//Check in user action
+function checkinUser(){
+	
+	//Add tables to option list
+	table_list = $('#checkin-table-list');
+	len = tables.length;
+	div = "";
+	for(i = 0;i < len;i++){
+		table_list.append("<option value='"+tables[i].table_id+"' >"+tables[i].table_id+"<span>:"+tables[i].num_chairs+" </span></option>");
+	}
+	//Refresh selectable list
+	table_list.selectpicker("refresh");
+	//Change format of turn time
+	$('#checkin-input-turn-time').mask("01:00:00");
+	//Clear form
+	$('#view-checkin-user').find('form')[0].reset();
+	//Show form
+	$('#view-checkin-user').modal('show');
+	//on click options menu for checkin tab
+	/*
+	$("#checkin-input-type option").change( function() {
+		alert('test');
+		var clickedOption = $(this);
+		console.log(clickedOption.attr('id'));
+	});
+	*/
+}
+
+var isReserved = false;
+//On click option for checkin menu
+$('select[id="checkin-input-type"]').change(function() {
+    var clickedOption = $(this).find('option:selected');
+	var clickedOptionId = clickedOption.attr('id');
+	//console.log(clickedOption.attr('id'));
+	switch(clickedOptionId){
+		case "checkin-input-guest":
+			$("#checkin-input-reservation-id").prop('disabled', true);
+			isReserved = false;
+			//console.log(clickedOptionId);
+			break;
+		case "checkin-input-reserved":
+			$("#checkin-input-reservation-id").prop('disabled', false);
+			isReserved = true;
+			//console.log(clickedOptionId);
+			break;	
+	}
+});
+
+//Search results for checkin view
+function ajaxUserSearch() {
+    var input_data = $('#checkin-input-name').val();
+	//console.log(input_data.length);
+    if (input_data.length < 1 || isReserved ==false) {
+        $('#checkin-name-suggestion').hide();
+    } else {
+        var post_data = {
+            'search_data': input_data,
+            '<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
+        };
+        $.ajax({
+            type: "POST",
+            url: "<?php echo base_url(); ?>reservations/name_autocomplete",
+            data: post_data,
+            success: function(data) {
+				// return success
+				if (data.length > 0) {
+					$('#checkin-name-suggestion').show();
+					$('#autoSuggestionsList-checkin').addClass('auto-list');
+					$('#autoSuggestionsList-checkin').html(data);
+				}
+			}
+		});
+	}
+}
+
+//On input name focus out
+$("#checkin-input-name").focusout(function () {
+     $('#checkin-name-suggestion').delay(300).hide(0);
+});
+
+//autocomplete name clicked function
+function checkinAutocompleteAction(context){
+	list = $(context);
+	//console.log(list);
+	//Load content to modal view
+	$("#checkin-input-name").val(list.data('name'));
+	document.getElementById("checkin-input-turn-time").setAttribute('value',list.data('turn-time'));
+	document.getElementById("checkin-input-reservation-id").setAttribute('value',list.data('reservation-id'));
+	document.getElementById("checkin-input-customer-size").setAttribute('value',parseInt(list.data('reservation-customer-size')));
+	//Select server
+	try{
+		$('#checkin-server-list option:selected').removeAttr('selected');
+		$('#checkin-server-list').val(list.data('server-id')).change();
+	}catch(exp){
+		console.log(exp);
+	}
+	//Select table
+	user_table = list.data('table-ids');
+	user_table = user_table.split(",");
+	table_list = $('#checkin-table-list');
+	table_list.html("");
+	len = tables.length;
+	for(i = 0;i < len;i++){
+		if(user_table.indexOf(tables[i].table_id) > -1){
+				table_list.append("<option value='"+tables[i].table_id+"' selected>"+
+				tables[i].table_id+"<span>:"+tables[i].num_chairs+" </span></option>");
+		}else{
+			table_list.append("<option value='"+tables[i].table_id+"' >"+
+			tables[i].table_id+"<span>:"+tables[i].num_chairs+" </span></option>");
+		}
+	}
+	//Refresh selectable list
+	table_list.selectpicker("refresh");
+}
+
+//On image error
+function onImgError(context){
+	$(context).initial(); 
+}
+
 //Get percentage on turn time
 function get_turn_time_percent(arrival_time,turn_time_val){
 	//console.log("Arrival: "+arrival_time+" Turn Time: "+turn_time_val+" Current: "+moment().format('YYYY-MM-DD hh:mm:ss'));
@@ -1103,9 +1312,10 @@ function get_turn_time_percent(arrival_time,turn_time_val){
 	}else{
 		var ratio = 0;
 		var minutes = Math.round(diff_2/60);
-		console.log("Overall Time: "+diff_2);
+		//console.log("Overall Time: "+diff_2);
 		return {'ratio':ratio,'minutes':minutes};
 	}
+	
 }
 </script>
 

@@ -1,3 +1,13 @@
+/*Available server container*/
+#available-server-list{
+	height: 400px;
+}
+
+#checkin-name-suggestion{
+	margin-left: -4%;
+	z-index:1;
+}
+
 #delete-table{
 	margin-bottom: -105px;
 }
