@@ -73,7 +73,9 @@ class Reservations extends CI_Controller {
 		data-table-ids='".$row->table_ids."'
 		data-server-id='".$row->server_id."'
 		data-user-id='".$row->user_id."'
+		data-id='".$row->id."'
 		data-name='".$row->name."'
+		data-notes='".$row->notes."'
 		onclick='checkinAutocompleteAction(this);'
 		class='list-group-item '>".$row->name ."</a></div>";
 		endforeach;
@@ -84,6 +86,7 @@ class Reservations extends CI_Controller {
 		$user_data = $this->session->userdata;
 		$query = $this->model_reservations->get_current_reservations($user_data['id']);
 		echo json_encode($query);
+		//print($query);
 	}
 	
 	public function get_inline_reservations(){
@@ -105,6 +108,7 @@ class Reservations extends CI_Controller {
 		$user_data = $this->session->userdata;
 		$query = $this->model_reservations->get_server_assignment($user_data['id']);
 		echo json_encode($query);
+		//print($query);
 	}
 	
 	public function get_available_tables(){
@@ -198,8 +202,8 @@ class Reservations extends CI_Controller {
 		$user_data = $this->session->userdata;
 		$this->load->model('Model_reservations');
 		$tables = $this->input->post('tables');
-		$reservation_guest_id = $this->input->post('reservation_guest_id');
-		$tables = json_decode($tables);
+		$reservation_id = $this->input->post('reservation_id');
+		$tables = (array) json_decode($tables);
 		$result = $this->Model_reservations->change_tables($user_data['id'],$reservation_id,$tables);
 		echo json_encode($result);
 	}
@@ -238,6 +242,13 @@ class Reservations extends CI_Controller {
 			$this->model_notifications->add_notification($user_id,$server_id,$restaurant_id,$reservation_id,"user","reservation","Your reservation has been removed");
 		}
 		echo $result;
+	}
+	
+	public function reservation_update_batch(){
+		$data = $this->input->post('data');
+		$data = json_decode($data);
+		$this->load->model('Model_reservations');
+		echo $this->Model_reservations->reservation_is_rated($data);
 	}
 	
 	public function update_reservation(){

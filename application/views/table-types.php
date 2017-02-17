@@ -66,11 +66,13 @@
 					</div>
 					</div>
 					<div class="col-md-12 card-header">
-						<h2>Diamond Tables</h2>
+						<h2>One Top Tables</h2>
 					</div>
 					
 					<!-- Grid View to Arrage Tables-->
 					<div class="grid col-md-offset-1">
+					<!--Diamond Tables below disabled-->
+					<!--
 					<div id="draggable-diamond" data-num-chairs="4" class="ui-widget-content table-diamond-reservation m-20 bgm-green" >
 						<p></p>
 						<div class="table-diamond bgm-teal"></div>
@@ -86,6 +88,19 @@
 						<div class="chair-diamond-reservation diamond-one "></div>
 						<div class="chair-diamond-reservation diamond-two "></div>
 					</div>
+					-->
+					<div id="draggable-circle-one" data-num-chairs="1" class="ui-widget-content table-circle-reservation m-20 bgm-green">
+						<p class="text-center"></p>
+						<div class="table-circle bgm-teal"></div>
+						<div class="chair-square-reservation-norm square-circle-one"></div>
+					</div>
+					
+					<div id="draggable-square-one" data-num-chairs="1" class="ui-widget-content table-square-reservation m-20 bgm-green" >
+						<p></p>
+						<div class="table-square bgm-teal"></div>
+						<div class="chair-square-reservation-norm square-one"></div>
+					</div>
+					
 					</div>
 					
 					<div class="col-md-12 card-header">

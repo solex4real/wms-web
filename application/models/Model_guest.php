@@ -21,6 +21,7 @@ class Model_guest extends CI_Model {
 			//Add tables to database
 			$i = 0;
 			foreach($tables as $row){
+				$tables[$i] = (array) $tables[$i];
 				$tables[$i]['reservation_guest_id'] = $reservation_guest_id;
 				$tables[$i]['reservation_id'] = 0;
 				$tables[$i]['restaurant_id'] = $restaurant_id;
@@ -61,16 +62,14 @@ class Model_guest extends CI_Model {
 		foreach($query->result() as $row){
 			array_push($current_tables, $row->table_id);
 		}
-		var_dump(array_search(16, $current_tables));
-		//print_r($current_tables);
 		$i = 0;
 		
 		//Add table if id does not exist in database
 		foreach($tables as $row){
-			if(($key = array_search($row['table_id'], $current_tables)) !== false){
+			if(($key = array_search($row->table_id, $current_tables)) !== false){
 				unset($current_tables[$key]);
 			}else{
-				$table = array('table_id'=>$row['table_id'],
+				$table = array('table_id'=>$row->table_id,
 				'restaurant_id'=>$restaurant_id,
 				'reservation_guest_id'=>$reservation_guest_id,
 				'reservation_id'=>0);

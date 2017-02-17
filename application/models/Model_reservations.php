@@ -68,67 +68,188 @@ class Model_reservations extends CI_Model {
 	}
 	
 	public function get_current_reservations($restaurant_id){
+		$start = strtotime(date('Y-m-d H:i:s').' -8 hours');
+		$end = strtotime(date('Y-m-d H:i:s').' +8 hours');
+		$date1 = date("Y-m-d H:i:s", $start);
+		$date2 = date("Y-m-d H:i:s", $end);
+		$this->db->select('reservation_guest.reservation_guest_id as reservation_id,
+		reservation_guest.id as user_id, reservation_guest.server_id, reservation_guest.turn_time,
+		reservation_guest.arrival_time as reservation_time,
+		reservation_guest.arrival_time as arrival_time, 
+		ADDTIME(reservation_guest.arrival_time, (reservation_guest.turn_time)) as turn_time_val,
+		reservation_guest.status, reservation_guest.guest_name as name, " " as icon_path, users.name as server_name,
+		users.icon_path as server_icon_path, 
+		GROUP_CONCAT(reservation_tables.table_size) as table_size,
+		GROUP_CONCAT(reservation_tables.table_id) as table_ids, reservation_guest.notes,
+		reservation_guest.customer_size, "guest" type');
+		$this->db->from('reservation_guest');
+		$this->db->join('users' ,'reservation_guest.server_id = users.id', 'inner');
+		$this->db->join('reservation_tables' ,'reservation_guest.reservation_guest_id = reservation_tables.reservation_guest_id', 'left');
+		$this->db->where('reservation_guest.restaurant_id',$restaurant_id);
+		$this->db->where('reservation_guest.status',2);
+		$this->db->having('DATE_FORMAT(reservation_guest.arrival_time, "%Y-%m-%d %H:%i:%s") >',$date1);
+		$this->db->having('DATE_FORMAT(reservation_guest.arrival_time, "%Y-%m-%d %H:%i:%s") <',$date2);
+		$this->db->group_by('reservation_guest.reservation_guest_id');
+		$subQuery1 = $this->db->get_compiled_select();
+		$this->db->reset_query();
+		
+		//$this->db->start_cache();
 		$this->db->select('reservation.reservation_id, reservation.user_id, reservation.server_id, 
 		reservation.reservation_time, reservation.turn_time, reservation.arrival_time,
 		ADDTIME(reservation.arrival_time, (reservation.turn_time)) as turn_time_val, reservation.status,
 		users.name, users.icon_path, s.name as server_name, s.icon_path as server_icon_path,
-		GROUP_CONCAT(reservation_tables.table_size) table_size');
+		GROUP_CONCAT(reservation_tables.table_size) table_size, 
+		GROUP_CONCAT(reservation_tables.table_id) table_ids, reservation.notes, reservation.customer_size,
+		"reserved" type');
 		$this->db->from('reservation');
 		$this->db->join('users' ,'reservation.user_id = users.id', 'inner');
 		$this->db->join('users as s' ,'reservation.server_id = s.id', 'inner');
 		$this->db->join('reservation_tables' ,'reservation.reservation_id = reservation_tables.reservation_id', 'left');
 		$this->db->where('reservation.restaurant_id',$restaurant_id);
+		$this->db->where('reservation.status',2);
+		$this->db->having('DATE_FORMAT(reservation.arrival_time, "%Y-%m-%d %H:%i:%s") >',$date1);
+		$this->db->having('DATE_FORMAT(reservation.arrival_time, "%Y-%m-%d %H:%i:%s") <',$date2);
 		$this->db->group_by('reservation.reservation_id');
-		//$this->db->where('reservation.reservation_time');
-		$query = $this->db->get();
-		return $query->result();
+		$subQuery2 = $this->db->get_compiled_select();
+		
+		return $this->db->query($subQuery1." UNION ".$subQuery2." ORDER BY arrival_time DESC")->result();
+		//$this->db->query($subQuery1)->result();
 		//return $this->db->last_query();
 	}
 	
 	public function get_inline_customers($restaurant_id){
-		$this->db->select('reservation.*,users.name,users.icon_path');
+		$start = strtotime(date('Y-m-d H:i:s').' -8 hours');
+		$end = strtotime(date('Y-m-d H:i:s').' +8 hours');
+		$date1 = date("Y-m-d H:i:s", $start);
+		$date2 = date("Y-m-d H:i:s", $end);
+		
+		//Sub query for reserved customers
+		$this->db->select('reservation.arrival_time, reservation.reservation_id,
+		reservation.notes, reservation.server_id, reservation.customer_size,
+		reservation.turn_time, ADDTIME(reservation.arrival_time, (reservation.turn_time)) as turn_time_val,
+		reservation.status, reservation.id, GROUP_CONCAT(reservation_tables.table_id) as table_ids,
+		reservation.notes, users.name,users.icon_path, "reserved" type');
 		$this->db->from('reservation');
+		$this->db->join('reservation_tables','reservation.reservation_id = reservation_tables.reservation_id','left');
 		$this->db->join('users','reservation.user_id = users.id','inner');
-		$this->db->where('reservation.restaurant_id',$restaurant_id);
 		$this->db->where('reservation.status',1);
+		$this->db->where('reservation.restaurant_id',$restaurant_id);
+		$this->db->having('DATE_FORMAT(reservation.arrival_time, "%Y-%m-%d %H:%i:%s") >',$date1);
+		$this->db->having('DATE_FORMAT(reservation.arrival_time, "%Y-%m-%d %H:%i:%s") <',$date2);
+		$this->db->group_by('reservation.reservation_id');
+		$subQuery1 =  $this->db->get_compiled_select();
+		
+		//Sub query for guest customers
+		$this->db->select('reservation_guest.arrival_time, reservation_guest.reservation_guest_id as reservation_id,
+		reservation_guest.notes, reservation_guest.server_id, reservation_guest.customer_size,
+		reservation_guest.turn_time, ADDTIME(reservation_guest.arrival_time, (reservation_guest.turn_time)) as turn_time_val,
+		reservation_guest.status, reservation_guest.id, GROUP_CONCAT(reservation_tables.table_id) as table_ids,
+		reservation_guest.notes, reservation_guest.guest_name, "icon_path" icon_path, "guest" type');
+		$this->db->from('reservation_guest');
+		$this->db->join('reservation_tables','reservation_guest.reservation_guest_id = reservation_tables.reservation_guest_id','left');
+		$this->db->where('reservation_guest.status',1);
+		$this->db->where('reservation_guest.restaurant_id',$restaurant_id);
+		$this->db->having('DATE_FORMAT(reservation_guest.arrival_time, "%Y-%m-%d %H:%i:%s") >',$date1);
+		$this->db->having('DATE_FORMAT(reservation_guest.arrival_time, "%Y-%m-%d %H:%i:%s") <',$date2);
+		$this->db->group_by('reservation_guest.reservation_guest_id');
+		$subQuery2 =  $this->db->get_compiled_select();
+		
+		return $this->db->query($subQuery1." UNION ".$subQuery2)->result();
+		/*
 		$query = $this->db->get();
 		return $query->result();
+		*/
 	}
 	
 	public function get_onhold_customers($restaurant_id){
-		$this->db->select('reservation.*,users.name,users.icon_path');
+		$start = strtotime(date('Y-m-d H:i:s').' -8 hours');
+		$end = strtotime(date('Y-m-d H:i:s').' +8 hours');
+		$date1 = date("Y-m-d H:i:s", $start);
+		$date2 = date("Y-m-d H:i:s", $end);
+		$this->db->select('reservation.*, users.name,users.icon_path,
+		GROUP_CONCAT(reservation_tables.table_id) as table_ids,
+		ADDTIME(reservation.arrival_time, (reservation.turn_time)) as turn_time_val
+		');
 		$this->db->from('reservation');
 		$this->db->join('users','reservation.user_id = users.id','inner');
+		$this->db->join('reservation_tables','reservation.reservation_id = reservation_tables.reservation_id','left');
 		$this->db->where('reservation.restaurant_id',$restaurant_id);
-		$this->db->where('reservation.status',1);
+		$this->db->where('reservation.status',0);
+		$this->db->having('DATE_FORMAT(reservation.arrival_time, "%Y-%m-%d %H:%i:%s") >',$date1);
+		$this->db->having('DATE_FORMAT(reservation.arrival_time, "%Y-%m-%d %H:%i:%s") <',$date2);
+		$this->db->having('DATE_FORMAT(reservation.arrival_time, "%Y-%m-%d %H:%i:%s") >',date('Y-m-d H:i:s'));
 		$query = $this->db->get();
-		return $query->result();
+		return $query->result();	
 	}
 	
 	public function get_server_assignment($restaurant_id){
+		$start = strtotime(date('Y-m-d H:i:s').' -8 hours');
+		$end = strtotime(date('Y-m-d H:i:s').' +8 hours');
+		$date1 = date("Y-m-d H:i:s", $start);
+		$date2 = date("Y-m-d H:i:s", $end);
 		//Sub query of reservered tables
-		$this->db->select('GROUP_CONCAT(reservation_tables.table_size SEPARATOR "-") as table_size, 
-		reservation_tables.reservation_id, reservation_tables.restaurant_id');
+		$this->db->select('GROUP_CONCAT(COALESCE(reservation_tables.table_size, 0) SEPARATOR "-") as table_size, 
+		GROUP_CONCAT(COALESCE(reservation_tables.table_id, 0) SEPARATOR "-") as table_id, 
+		reservation_tables.reservation_id, reservation_tables.reservation_guest_id, 
+		reservation_tables.restaurant_id',false);
 		$this->db->from('reservation_tables');
 		$this->db->where('reservation_tables.restaurant_id ',$restaurant_id);
 		$this->db->group_by('reservation_tables.reservation_id');
+		$this->db->group_by('reservation_tables.reservation_guest_id');
 		$subQuery =  $this->db->get_compiled_select();
 		
-		$this->db->select('GROUP_CONCAT(reservation_tables.table_size) as table_size,reservation.server_id,
-		GROUP_CONCAT(reservation.user_id), GROUP_CONCAT(u.icon_path) as user_icon_path, 
+		//Subquery for reserved customers
+		$this->db->select('GROUP_CONCAT(COALESCE(reservation_tables.table_size, 0) SEPARATOR ",") as table_size,
+		GROUP_CONCAT(COALESCE(reservation_tables.table_id, 0) SEPARATOR ",") as table_id,
+		reservation.server_id, GROUP_CONCAT(reservation.user_id) as user_id, 
+		GROUP_CONCAT(u.icon_path) as user_icon_path, reservation.arrival_time,
 		GROUP_CONCAT(u.name) as user_name, s.name as server_name,
-		s.icon_path as server_icon_path, GROUP_CONCAT(reservation.reservation_id),
-		');
+		s.icon_path as server_icon_path, GROUP_CONCAT(reservation.reservation_id) as reservation_id,
+		GROUP_CONCAT("reserved") type',false);
 		$this->db->from('reservation');
 		$this->db->join("($subQuery) as reservation_tables",'reservation.reservation_id = reservation_tables.reservation_id','left');
 		$this->db->join('users as u','reservation.user_id = u.id');
 		$this->db->join('users as s','reservation.server_id = s.id', 'inner');
-		
 		$this->db->where('reservation.restaurant_id',$restaurant_id);
-		$this->db->group_by('reservation.server_id');
+		$this->db->where('reservation.status',2);
+		$this->db->having('DATE_FORMAT(reservation.arrival_time, "%Y-%m-%d %H:%i:%s") >',$date1);
+		$this->db->having('DATE_FORMAT(reservation.arrival_time, "%Y-%m-%d %H:%i:%s") <',$date2);
+		$this->db->group_by('reservation.reservation_id');
+		$subQuery1 =  $this->db->get_compiled_select();
+		
+		//Subquery for guest customers
+		$this->db->select('GROUP_CONCAT(COALESCE(reservation_tables.table_size, 0) SEPARATOR ",") as table_size,
+		GROUP_CONCAT(COALESCE(reservation_tables.table_id, 0) SEPARATOR ",") as table_id,
+		reservation_guest.server_id,GROUP_CONCAT(reservation_guest.id) as user_id, 
+		GROUP_CONCAT("icon_path") as user_icon_path, reservation_guest.arrival_time,
+		GROUP_CONCAT(reservation_guest.guest_name) as user_name, s.name as server_name,
+		s.icon_path as server_icon_path, GROUP_CONCAT(reservation_guest.reservation_guest_id) as reservation_id,
+		GROUP_CONCAT("guest") type',false);
+		$this->db->from('reservation_guest');
+		$this->db->join("($subQuery) as reservation_tables",'reservation_guest.reservation_guest_id = reservation_tables.reservation_guest_id','left');
+		$this->db->join('users as s','reservation_guest.server_id = s.id', 'inner');
+		$this->db->where('reservation_guest.restaurant_id',$restaurant_id);
+		$this->db->where('reservation_guest.reservation_guest_id >',0);
+		$this->db->where('reservation_guest.status',2);
+		$this->db->having('DATE_FORMAT(reservation_guest.arrival_time, "%Y-%m-%d %H:%i:%s") >',$date1);
+		$this->db->having('DATE_FORMAT(reservation_guest.arrival_time, "%Y-%m-%d %H:%i:%s") <',$date2);
+		$this->db->group_by('reservation_guest.reservation_guest_id');
+		$subQuery2 =  $this->db->get_compiled_select();
+		
+		//$this->db->query($subQuery1." UNION ".$subQuery2)->result();
+		$result = $this->db->query("SELECT GROUP_CONCAT(t.table_size) as table_size,
+		GROUP_CONCAT(t.table_id) as table_id, t.server_id, GROUP_CONCAT(t.user_id) as user_id,
+		GROUP_CONCAT(t.user_icon_path) as user_icon_path, GROUP_CONCAT(t.user_name) as user_name,
+		t.server_name, t.server_icon_path, GROUP_CONCAT(t.reservation_id) as reservation_id, 
+		GROUP_CONCAT(t.type) as type FROM(".
+		$subQuery1." UNION ".$subQuery2.") as t GROUP BY t.server_id")->result();
+		
+		/*
 		$query = $this->db->get(); 
 		return $query->result();
-		//return $this->db->last_query();
+		return $this->db->last_query();
+		*/
+		return $result;
 	}
 	
 	public function get_today_reservations($restaurant_id,$current_page,$search_data,$order){
@@ -196,8 +317,8 @@ class Model_reservations extends CI_Model {
 	
 	public function get_name_autocomplete($restaurant_id,$search_data){
 		$limit = 10;
-		$this->db->select('reservation.reservation_id, reservation.reservation_time,
-			GROUP_CONCAT(reservation_tables.table_id) as table_ids, reservation.customer_size,
+		$this->db->select('reservation.id, reservation.reservation_id, reservation.reservation_time,
+			GROUP_CONCAT(reservation_tables.table_id) as table_ids, reservation.customer_size, reservation.notes,
 			reservation.server_id, reservation.user_id, reservation.turn_time, users.name
 		');
 		$this->db->from('reservation');
@@ -233,10 +354,10 @@ class Model_reservations extends CI_Model {
 		
 		//Add table if id does not exist in database
 		foreach($tables as $row){
-			if(($key = array_search($row['table_id'], $current_tables)) !== false){
+			if(($key = array_search($row->table_id, $current_tables)) !== false){
 				unset($current_tables[$key]);
 			}else{
-				$table = array('table_id'=>$row['table_id'],
+				$table = array('table_id'=>$row->table_id,
 				'restaurant_id'=>$restaurant_id,
 				'reservation_id'=>$reservation_id,
 				'reservation_id'=>0);
@@ -377,8 +498,12 @@ class Model_reservations extends CI_Model {
 		strtotime('+60 minutes', strtotime($start)));//add 60 mins from datetime 
 		
 		//Sub query of reservation tables
-		$this->db->select('reservation_id, table_size, restaurant_id')->from('reservation_tables');
+		$this->db->select('reservation_tables.reservation_id, tables.num_chairs as table_size, 
+		reservation_tables.restaurant_id');
+		$this->db->from('reservation_tables');
+		$this->db->join('tables','reservation_id.table_id = tables.table_id', 'inner');
 		$this->db->where('reservation_tables.restaurant_id ',$restaurant_id);
+		$this->db->where('tables.restaurant_id ',$restaurant_id);
 		$subQuery =  $this->db->get_compiled_select();
 		
 		//Sub query of used tables

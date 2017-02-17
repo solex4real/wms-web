@@ -34,8 +34,8 @@ class Reservation_guest extends CI_Controller {
 	public function add_reservation(){
 		$user_data = $this->session->userdata;
 		$this->load->model('Model_guest');
-		$data = $this->input->post('data');
-		$tables = $this->input->post('tables');
+		$data = (array) json_decode($this->input->post('data'));
+		$tables = (array) json_decode($this->input->post('tables'));
 		/*
 		$data = array(
 			'restaurant_id'=>$user_data['id'],
@@ -89,6 +89,8 @@ class Reservation_guest extends CI_Controller {
 		$result = $this->Model_guest->change_tables($user_data['id'],$reservation_guest_id,$tables);
 		echo json_encode($result);
 	}
+	
+	
 	
 }
 

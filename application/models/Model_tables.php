@@ -12,20 +12,49 @@ class Model_tables extends CI_Model {
 	}
 	
 	public function get_preview_tables($restaurant_id){
-		//Sub query for reservation tables
-		$this->db->select('tables.*, reservation_tables.reservation_id, reservation.turn_time,
-		reservation.arrival_time, ADDTIME(reservation.arrival_time, (reservation.turn_time)) as turn_time_val');
+		$start = strtotime(date('Y-m-d H:i:s').' -8 hours');
+		$end = strtotime(date('Y-m-d H:i:s').' +8 hours');
+		$date1 = date("Y-m-d H:i:s", $start);
+		$date2 = date("Y-m-d H:i:s", $end);
+		//sub query for customer reservations
+		$this->db->select('reservation.id as res_id, reservation.arrival_time, reservation.turn_time,
+		reservation.reservation_id, tables.table_id, users.name as customer_name,
+		s.name as server_name, "reserved" as type');
 		$this->db->from('reservation_tables');
 		$this->db->join('tables', 'reservation_tables.table_id = tables.table_id', 'inner');
 		$this->db->join('reservation', 'reservation_tables.reservation_id = reservation.reservation_id', 'left');
+		$this->db->join('users', 'reservation.user_id = users.id', 'inner');
+		$this->db->join('users s', 'reservation.server_id = s.id', 'inner');
 		$this->db->where('reservation_tables.restaurant_id ',$restaurant_id);
-		$this->db->group_by('tables.table_id');
-		//$this->db->where('reservation.reservation_time <=',$start);
-		//$this->db->having('ADDTIME(reservation.reservation_time, "01:00:00") >=',$start);
-		$subQuery =  $this->db->get_compiled_select();
+		$this->db->where('reservation.restaurant_id',$restaurant_id);
+		$this->db->where('reservation.status',2);
+		$this->db->having('DATE_FORMAT(reservation.arrival_time, "%Y-%m-%d %H:%i:%s") >',$date1);
+		$this->db->having('DATE_FORMAT(reservation.arrival_time, "%Y-%m-%d %H:%i:%s") <',$date2);
+		$subQuery1 =  $this->db->get_compiled_select();
+		
+		//sub query for guest reservations
+		$this->db->select('reservation_guest.id as res_id, reservation_guest.arrival_time, reservation_guest.turn_time,
+		reservation_guest.reservation_guest_id, tables.table_id, reservation_guest.guest_name as customer_name,
+		s.name as server_name, "guest" as type');
+		$this->db->from('reservation_tables');
+		$this->db->join('tables', 'reservation_tables.table_id = tables.table_id', 'inner');
+		$this->db->join('reservation_guest', 'reservation_tables.reservation_guest_id = reservation_guest.reservation_guest_id', 'left');
+		$this->db->join('users s', 'reservation_guest.server_id = s.id', 'inner');
+		$this->db->where('reservation_tables.restaurant_id ',$restaurant_id);
+		$this->db->where('reservation_guest.restaurant_id',$restaurant_id);
+		$this->db->where('reservation_guest.status',2);
+		$this->db->having('DATE_FORMAT(reservation_guest.arrival_time, "%Y-%m-%d %H:%i:%s") >',$date1);
+		$this->db->having('DATE_FORMAT(reservation_guest.arrival_time, "%Y-%m-%d %H:%i:%s") <',$date2);
+		$subQuery2 =  $this->db->get_compiled_select();
+		
+		//Sub query for all reservations
+		$this->db->query($subQuery1." UNION ".$subQuery2)->result();
+		$subQuery =  $this->db->last_query();
+		$this->db->flush_cache();
 		
 		$this->db->select('table_sections.*,tables.*,tab_res.turn_time, tab_res.reservation_id,
-		tab_res.arrival_time');
+		tab_res.arrival_time, tab_res.customer_name, tab_res.server_name, tab_res.res_id,
+		ADDTIME(tab_res.arrival_time, (tab_res.turn_time)) as turn_time_val, tab_res.type as res_type');
 		$this->db->from('tables');
 		$this->db->join('table_sections' ,'tables.section_id = table_sections.section_id','inner');
 		$this->db->join("($subQuery) as tab_res", 'tables.table_id = tab_res.table_id',

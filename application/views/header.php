@@ -41,6 +41,10 @@
 <!-- My CSS -->
 <link href="<?= base_url();?>wms/css/style.css" 
 	rel="stylesheet">
+<!-- Preloader Library-->
+<link href="<?= base_url();?>wms/css/md-preloader-master/md-preloader.min.css" 
+	rel="stylesheet">
+
 
 </head>
 <body>

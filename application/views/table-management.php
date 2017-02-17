@@ -149,6 +149,7 @@ src="<?= base_url();?>material/vendors/bootstrap-datetimepicker/bootstrap-dateti
 
 <link href="<?= base_url();?>wms/css/jquery.ui.rotatable.css" rel="stylesheet">
 <link href="<?= base_url();?>wms/css/css-percentage-circle-master/css/circle.css" rel="stylesheet">
+
 	
 <script type="text/javascript">
 //Define Global parameters
@@ -162,6 +163,7 @@ var waiting_list_customers = []; //Id list for customers on waiting list
 var current_list_customers = []; //Id list for current/seated customers
 var assignment_list_servers = []; //Id list of server assignment for tables and customers
 var onhold_list_customers = []; //Id list for cust onhold
+var currentid = 1;	//Current table id
 var draggable_action = function(){
 	if(!action_performed){
 		var table_id = $(this).data("table-id");
@@ -209,8 +211,69 @@ $('#sec_list').change(function() {
 });
 
 var table_info_modal = function(){
+	var table_div = $(this);
+	//console.log(table_div.data());
+	var table_id = table_div.data('table-id');
+	var section_id = table_div.data('section-id');
+	var table_status = table_div.data('status');
+	var table_old_status = table_div.data('status');
+	document.getElementById("table-info-table-id").setAttribute('value',table_id);
+	document.getElementById("table-info-section-id").setAttribute('value',section_id);
+	//Get table info
+	var isOccupied = table_div.data('is-occupied');
+	if(isOccupied){
+		$('#table-info-reservation').show();
+		//Customer info
+		progressBar = table_div.children("div:first").
+			children("div:first").children("div:first").children("div:first");
+		var customer_name = progressBar.data('customer-name');	
+		var server_name = progressBar.data('server-name');	
+		var turn_time = progressBar.data('turn-time-val');
+		turn_time = new Date(turn_time);
+		turn_time = moment(turn_time).format('YYYY-MM-DD h:mm a');
+		//display info on modal
+		document.getElementById("table-info-customer-name").setAttribute('value',customer_name);
+		document.getElementById("table-info-server-name").setAttribute('value',server_name);
+		document.getElementById("table-info-turn-time").setAttribute('value',turn_time);
+		$("#table-info-status").val(2).change();
+	}else{
+		$('#table-info-reservation').hide();
+		$("#table-info-status").val(table_status).change();
+	}
 	$('#view-table-info').modal('show');
-	table_div = $(this);
+	//on click save button
+	$("#save-table-data-info").unbind('click').bind('click', function(){
+		table_status = $("#table-info-status").val();
+		table_div.data('status',table_status);
+		//update table
+		updateTable([{'id':table_div.data('id'),'status':table_status}]);
+		//Status color array
+		status_color = ['bgm-bluegray','bgm-teal','bgm-green','bgm-orange','bgm-deeporange'];
+		//Change background of table if empty
+		table_div.removeClass(status_color[parseInt(table_old_status)]).
+		addClass(status_color[parseInt(table_status)]);
+		if(table_div.data('is-occupied')){
+			if(table_status != "2"){
+				//Remove progress bar from
+				table_div.children("div:first").
+				children("div:first").children("div:first").remove();
+				//Set is occupied to false
+				table_div.data('is-occupied',false);
+				//Change color of table
+				table_div.removeClass('bgm-green').addClass(status_color[table_status]);
+				table_div.children("div:eq(1)").removeClass('bgm-green').addClass(status_color[table_status]);
+			}
+		}else{
+			table_div.removeClass(status_color[parseInt(table_old_status)]).addClass(status_color[table_status]);
+			table_div.children("div:eq(1)").removeClass(status_color[table_old_status]).addClass(status_color[table_status]);
+			/*
+			table_div.children("div:first").removeClass(status_color[parseInt(table_old_status)]).
+			addClass(status_color[table_status]);
+			*/
+			table_div.data('is-occupied',false);
+		}
+		$('#view-table-info').modal('hide');
+	});
 }
 
 function draggable_id_exist(id){
@@ -306,7 +369,6 @@ function draggable_id_exist(id){
 	$( "#draggable-rectangle-ten" ).draggable(draggable_params);
 	
 	current_droppable = droppable;
-	currentid = 1;
 	var rotationAngle = 0;
 	droppable_params = {
 		//accept: '.ui-widget-content',
@@ -395,6 +457,7 @@ function draggable_id_exist(id){
 				$(ui.helper).attr("id","table-id-"+result.id);
 				//add draggable id to array
 				draggable_array_id.push(currentid);
+				console.log("Current: "+currentid);
 				//Table info data display
 				var table_data = 
 				"<div class='row res-info-area' >"+
@@ -486,6 +549,10 @@ function updateTable(data){
 			var section_div = "";
 			tables = json;
 			var sectionContainer = document.getElementById("static-table-container");
+			//Clear droppable containner
+			$('#static-table-container').find('.droppable-layout').each( function(){
+				$(this).html("");
+			});
 			for (i = 0; i < len; i++) {
 				//Setup droppable
 				if(droppable_id != json[i].section_id){
@@ -507,7 +574,16 @@ function updateTable(data){
 				'transform': 'rotate('+rotationAngle+'deg)'
 				});
 				//Define table id
-				cloned.attr('id','res-table-id-'+json[i].table_id);
+				var idType = (json[i].res_type == 'guest') ? "a":"";
+				cloned.attr('id','res-table-id-'+json[i].table_id+idType);
+				cloned.data({
+					 'section-id':json[i].section_id,'id':json[i].id,'res-id':json[i].res_id,
+					'table-id':json[i].table_id,'status':json[i].status,
+					'arrival-time':json[i].arrival_time,'server-name':json[i].server_name,
+					'customer-name':json[i].customer_name, 'reservation-id':json[i].reservation_id,
+					'turn-time-val':json[i].turn_val,'customer-type':json[i].res_type
+					
+				});
 				//Table info data display
 				var table_data = 
 				"<div class='row res-info-area' >"+
@@ -519,18 +595,13 @@ function updateTable(data){
 					cloned.data('trigger','hover');
 					cloned.data('toggle','po');
 					*/
-					cloned.data({
-						'trigger':'hover','toggle':'popover','placement':'left',
-						'original-title':'Table Status','content':'Table is clean',
-						'is-occupied':false
-					});
 					var class_atrr = "";
 					/*
 					Change color based on status
 					0 - unavailable : blue gray
 					1 - available : teal
 					2 - occupied : green
-					3 - needs cleaning : orange 
+					3 - needs cleaning/check table : orange 
 					4 - closed : deep orange
 					*/
 					//Status color array
@@ -538,12 +609,17 @@ function updateTable(data){
 					//Change background of table if empty
 					cloned.removeClass('bgm-green').addClass(status_color[json[i].status]);
 					cloned.children("div:first").removeClass('bgm-teal').addClass(status_color[json[i].status]);
+					cloned.data('is-occupied',false);
 				}else{
 					//Add data for tables that are occupied
 					var turn_data = get_turn_time_percent(json[i].arrival_time,json[i].turn_time_val);
 					table_data +=
 					"<div class='res-progress progress text-center' >"+
-					"<div class='progress-bar progress-bar-info' role='progressbar' aria-valuenow='20' aria-valuemin='0' aria-valuemax='100' style='width: "+turn_data.ratio+"%'></div>"+
+					"<div class='progress-bar progress-bar-info' role='progressbar' data-arrival-time='"+json[i].arrival_time+
+					"' data-customer-name='"+json[i].customer_name+"'"+" data-server-name='"+json[i].server_name+"' "+
+					" data-reservation-id='"+json[i].reservation_id+"'"+
+					" data-turn-time-val='"+json[i].turn_time_val+"'"+
+					"' aria-valuenow='20' aria-valuemin='0' aria-valuemax='100' style='width: "+turn_data.ratio+"%'></div>"+
 					"</div>"+
 					//"<small class='c-gray col-sm-12 text-center'>3</small>"+
 					"</div></div>";
@@ -576,22 +652,46 @@ function updateTable(data){
 	//Count down for tables
 	len = current_list_tables.length;
 	for(i = 0;i < len;i++){
-		if(a <= 100){
+		table_div = $('#'+current_list_tables[i]);
+		if(table_div.data('is-occupied')){
+			//Customer info
+			progressBar = table_div.children("div:first").
+			children("div:first").children("div:first").children("div:first");
+			arrival_time = progressBar.data('arrival-time');
+			turn_time = progressBar.data('turn-time-val');
+			var time_data = get_turn_time_percent(arrival_time,turn_time);
 			//Begin progress bar
 			b = $('#'+current_list_tables[i]).children("div:first").
 			children("div:first").children("div:first").children("div:first");
-			//console.log(b.css('width'));
-			b.css({'width':a+'%'});
-			a = a + 10;
+			b.css({'width':time_data.ratio+'%'});
+			if(time_data.ratio >= 100){
+				table_div.data('is-occupied',false);
+				if(table_div.data('customer-type') == "reserved"){
+					data =[{'id':table_div.data('res-id'),'status':3}]; 
+					console.log(data);
+					reservationChanged(JSON.stringify(data));
+				}else{
+					data =[{'id':table_div.data('res-id'),'status':3}];
+					console.log(data);
+					guestReservationChanged(JSON.stringify(data));
+				}
+				//guestReservationChanged
+			}
 		}else{
 			//Remove progress bar from
 			$('#'+current_list_tables[i]).children("div:first").
 			children("div:first").children("div:first").remove();
-			//Set is occupied to false
-			$('#'+current_list_tables[i]).data('is-occupied',false);
 			//Change color of table
 			$('#'+current_list_tables[i]).removeClass('bgm-green').addClass('bgm-orange');
 			$('#'+current_list_tables[i]).children("div:eq(1)").removeClass('bgm-green').addClass('bgm-orange');
+			//Set is occupied to false
+			table_div.data('is-occupied',false);
+			table_div.data('status',3);
+			//Remove from list
+			var index = current_list_tables.indexOf(table_div.attr('id'));
+			if (index > -1) {
+				current_list_tables.splice(index, 1);
+			}
 		}
 	}
 	
@@ -603,7 +703,7 @@ function updateTable(data){
 	for(i = 0;i < len;i++){
 		b = $('#'+current_list_customers[i]);
 		arrival_time = b.data('arrival-time');
-		turn_time = b.data('turn-time');
+		turn_time = b.data('turn-time-val');
 		var time_data = get_turn_time_percent(arrival_time,turn_time);
 		//console.log({'arrival: ':arrival_time,'turn time: ':turn_time});
 		b.find('span').html(time_data.minutes+"M");
@@ -614,8 +714,10 @@ function updateTable(data){
 			if(index > -1){
 				new_current_list_customers.splice(index,1);
 			}
+			var idType = (b.data('customer-type') == 'guest') ? "a":"";
+			//console.log(b.data());
 			//Remove from server assignment list view
-			$('#server-assignment-customer-'+b.data('user-id')).remove();
+			$('#server-assignment-customer-'+b.data('user-id')+idType).remove();
 			//Remove from current/seated customer list view
 			b.remove();
 		}
@@ -757,7 +859,11 @@ function updateTable(data){
 				//add draggable id to array
 				draggable_array_id.push(parseInt(json[i].table_id));
 				//droppable.droppable(droppable_params);
-				currentid = parseInt(json[i].table_id);
+				
+				if(json[i].table_id != undefined){
+					currentid = parseInt(json[i].table_id);
+				}
+				
 			}
 		},
 		error: function (request, ajaxOptions, thrownError) {
@@ -898,7 +1004,7 @@ function updateTable(data){
         theme: true, //Do not remove this as it ruin the design
         selectable: true,
         selectHelper: true,
-        editable: true,
+        editable: false,
 		defaultView: 'agendaDay'
 	});
 	cId.fullCalendar('render');
@@ -977,13 +1083,32 @@ function loadReservations(){
 			len = json.length;
 			//Add current reservations to list
 			var listContainer = document.getElementById("current-reservation-list");
+			//Clear div
 			var div = "";
+			listContainer.innerHTML = div;
+			//Clear list
+			current_list_customers = [];
 			for (i = 0; i < len; i++) {
+				//Define table id
+				var idType = (json[i].type == 'guest') ? "a":"";
 				var turn_time_data = get_turn_time_percent(json[i].arrival_time,json[i].turn_time_val);
 				//console.log({'arrival: ':json[i].arrival_time,'turn: ':json[i].turn_time_val});
 				div += 
-				"<a id='current-reservation-"+json[i].reservation_id+"' class='lv-item' data-user-id='"+json[i].user_id+"'"+
-				"data-arrival-time='"+json[i].arrival_time+"' data-turn-time='"+json[i].turn_time_val+"'>"+
+				"<a id='current-reservation-"+json[i].reservation_id+idType+"' class='lv-item' data-user-id='"+json[i].user_id+"'"+
+				"data-arrival-time='"+json[i].arrival_time+
+				"' data-turn-time-val='"+json[i].turn_time_val+"'"+
+				" data-customer-type='"+json[i].type+"'"+
+				"data-customer-name='"+json[i].name+"'"+
+				"data-reservation-id='"+json[i].reservation_id+"'"+
+				"data-notes='"+json[i].notes+"'"+
+				"data-server-id='"+json[i].server_id+"'"+
+				"data-customer-size='"+json[i].customer_size+"'"+
+				"data-turn-time='"+json[i].turn_time+"'"+
+				"data-status='"+json[i].status+"'"+
+				"data-id='"+json[i].id+"'"+
+				"data-table-ids='"+json[i].table_ids+"'"+
+				" onclick='changeCustomerStatus(this,\"current\")'"+
+				">"+
 				"<div class='media'>"+
 				"<div class='pull-left'>"+
 				"<img class='lv-img-sm' data-name='"+json[i].name+"' onerror='onImgError(this)' src='"+"<?php echo base_url();?>"+json[i].icon_path+"' >"+
@@ -1005,7 +1130,7 @@ function loadReservations(){
 				"</div>"+
 				"</a>";
 				//Add to current costumer list
-				current_list_customers.push("current-reservation-"+json[i].reservation_id);
+				current_list_customers.push("current-reservation-"+json[i].reservation_id+idType);
 				//console.log(get_turn_time_percent(json[i].arrival_time,json[i].turn_time_val));
 			}
 			listContainer.innerHTML += div;
@@ -1031,7 +1156,12 @@ function loadInLineCustomers(){
 			len = json.length;
 			//Add current reservations to list
 			var listContainer = document.getElementById("inline-reservation-list");
+			//Clear div
 			var div = "";
+			listContainer.innerHTML = div;
+			//Clear id list
+			waiting_list_customers = [];
+			
 			for (i = 0; i < len; i++) {
 				var now  = moment().format("DD/MM/YYYY HH:mm:ss");
 				var then = json[i].arrival_time;
@@ -1039,9 +1169,26 @@ function loadInLineCustomers(){
 				var ms = moment(now,'DD/MM/YYYY HH:mm:ss').diff(moment(then,'YYYY-MM-DD h:mm:ss'));
 				var d = moment.duration(ms);
 				var s = Math.floor(d.asHours()) + moment.utc(ms).format(":mm:ss");
-
+				
+				//Define id type
+				var idType = (json[i].type == 'guest') ? "a":"";
 				div += 
-				"<a id='inline-reservation-"+json[i].reservation_id+"' data-arrival-time='"+json[i].arrival_time+"' class='lv-item' >"+
+				"<a id='inline-reservation-"+json[i].reservation_id+idType+"' "+
+				"data-arrival-time='"+json[i].arrival_time+"'"+
+				"data-customer-type='"+json[i].type+"'"+
+				"data-customer-name='"+json[i].name+"'"+
+				"data-reservation-id='"+json[i].reservation_id+"'"+
+				"data-notes='"+json[i].notes+"'"+
+				"data-server-id='"+json[i].server_id+"'"+
+				"data-customer-size='"+json[i].customer_size+"'"+
+				"data-turn-time='"+json[i].turn_time+"'"+
+				"data-turn-time-val='"+json[i].turn_time_val+"'"+
+				"data-arrival-time='"+json[i].arrival_time+"'"+
+				"data-status='"+json[i].status+"'"+
+				"data-id='"+json[i].id+"'"+
+				"data-table-ids='"+json[i].table_ids+"'"+
+				" onclick='changeCustomerStatus(this,\"waiting\")' "+
+				" class='lv-item' >"+
 				"<div class='media'>"+
 				"<div class='pull-left'>"+
 				"<img class='lv-img-sm' data-name='"+json[i].name+"' onerror='onImgError(this)' src='"+"<?php echo base_url();?>"+json[i].icon_path+"' >"+
@@ -1054,7 +1201,7 @@ function loadInLineCustomers(){
 				"</div>"+
 				"</a>";
 				//Add Id to waiting costumer list
-				waiting_list_customers.push("inline-reservation-"+json[i].reservation_id);
+				waiting_list_customers.push("inline-reservation-"+json[i].reservation_id+idType);
 				
 				//console.log(get_turn_time_percent(json[i].arrival_time,json[i].turn_time_val));
 			}
@@ -1081,7 +1228,12 @@ function loadOnholdCustomers(){
 			len = json.length;
 			//Add onhold customers to list
 			var listContainer = document.getElementById("onhold-customers-list");
+			// Clear div
 			var div = "";
+			listContainer.innerHTML = div;
+			//clear list of ids
+			onhold_list_customers = [];
+			
 			for (i = 0; i < len; i++) {
 				var now  = moment().format("DD/MM/YYYY HH:mm:ss");
 				var then = json[i].reservation_time;
@@ -1089,9 +1241,24 @@ function loadOnholdCustomers(){
 				var ms = moment(now,'DD/MM/YYYY HH:mm:ss').diff(moment(then,'YYYY-MM-DD h:mm:ss'));
 				var d = moment.duration(ms);
 				var s = Math.floor(d.asHours()) + moment.utc(ms).format(":mm:ss");
-
+				
 				div += 
-				"<a id='onhold-customer-"+json[i].reservation_id+"' data-reservation-time='"+json[i].reservation_time+"' class='lv-item' >"+
+				"<div id='onhold-customer-"+json[i].reservation_id+
+				"' data-reservation-time='"+json[i].reservation_time+"'"+
+				"data-customer-type='reserved'"+
+				"data-customer-name='"+json[i].name+"'"+
+				"data-reservation-id='"+json[i].reservation_id+"'"+
+				"data-notes='"+json[i].notes+"'"+
+				"data-server-id='"+json[i].server_id+"'"+
+				"data-customer-size='"+json[i].customer_size+"'"+
+				"data-turn-time='"+json[i].turn_time+"'"+
+				"data-turn-time-val='"+json[i].turn_time_val+"'"+
+				"data-arrival-time='"+json[i].arrival_time+"'"+
+				"data-status='"+json[i].status+"'"+
+				"data-id='"+json[i].id+"'"+
+				"data-table-ids='"+json[i].table_ids+"'"+
+				" onclick='changeCustomerStatus(this,\"onhold\")' "+
+				" class='lv-item' >"+
 				"<div class='media'>"+
 				"<div class='pull-left'>"+
 				"<img data-name='"+json[i].name+"' onerror='onImgError(this)' class='lv-img-sm' src='"+"<?php echo base_url();?>"+json[i].icon_path+"' >"+
@@ -1102,7 +1269,7 @@ function loadOnholdCustomers(){
                 "<small class='lv-small'> Reservation Time: "+moment(json[i].reservation_time, 'YYYY-MM-DD h:mm:ss').format('h:mm a')+"</small>"+
                 "</div>"+
 				"</div>"+
-				"</a>";
+				"</div>";
 				//Add onhold costumers to onhold list
 				onhold_list_customers.push("onhold-customer-"+json[i].reservation_id);
 				
@@ -1132,16 +1299,28 @@ function loadServerAssignment(){
 			//Add current reservations to list
 			var listContainer = document.getElementById("server-assignment-list");
 			var div = "";
+			//clear div
+			listContainer.innerHTML = div;
 			for (i = 0; i < len; i++) {
 				innerDiv = "";
 				var user_name = json[i].user_name.split(',');
+				var user_icon_path = json[i].user_icon_path.split(','); 
+				var user_type = json[i].type.split(',');
+				var user_id = json[i].user_id.split(',');
+				var table_ids1 = json[i].table_id.split(',');
 				//Add chips for each users
 				for(j = 0; j < user_name.length; j++){
-					user_icon_path = json[i].user_icon_path.split(','); 
+					//Define id type
+					var idType = (user_type[j] == 'guest') ? "a":"";
+					table_id = table_ids1[j].split('-');
+					//Change string in table id to None if zero
+					for(k = 0;k < table_id.length;k++){
+						table_id[k] = (table_id[k] == '0') ? 'None':table_id[k];
+					}
 					innerDiv +=
-					"<div id='server-assignment-customer-"+json[i].user_id+"' class='chip'>"+
+					"<div id='server-assignment-customer-"+user_id[j]+idType+"' data-customer-type='"+idType+"' class='chip'>"+
 					"<img data-name='"+json[i].user_name+"' onerror='onImgError(this)' src='"+"<?php echo base_url();?>"+user_icon_path[j]+"' alt='Person' width='20' height='20'>"+
-					user_name[j]+"<span class='c-gray'>: "+json[i].table_size+"</span>"+
+					user_name[j]+"<span class='c-gray'>: "+table_id+"</span>"+
 					//"<span class='closebtn' onclick=this.parentElement.style.display='none'>&times;</span>"+
 					"</div>";
 				}
@@ -1186,19 +1365,299 @@ function checkinUser(){
 	//Refresh selectable list
 	table_list.selectpicker("refresh");
 	//Change format of turn time
-	$('#checkin-input-turn-time').mask("01:00:00");
+	$('#checkin-input-turn-time').mask("00:00:00");
 	//Clear form
 	$('#view-checkin-user').find('form')[0].reset();
 	//Show form
 	$('#view-checkin-user').modal('show');
-	//on click options menu for checkin tab
-	/*
-	$("#checkin-input-type option").change( function() {
-		alert('test');
-		var clickedOption = $(this);
-		console.log(clickedOption.attr('id'));
+	//On click save button
+	$('#save-checkin-data').unbind('click').bind('click', function(){
+		var customer_name = $('#checkin-input-name').val();
+		var id = $('#getReservationId').val();
+		var tableIds = $('#getTableIds').val();
+		var notes = document.getElementById('checkin-input-notes').value;//$('#getNotes').val();
+		tableIds = tableIds.split(',');
+		var reservation_id = $('#checkin-input-reservation-id').val();
+		var server_id = $('#checkin-server-list').val();
+		var customer_size = document.getElementById('checkin-input-customer-size').value;//$('checkin-input-customer-size').val();
+		var turn_time = $('#checkin-input-turn-time').val();
+		var table_data = [];
+		var table_list = $('#checkin-table-list').val();
+		len = (table_list==null) ? 0:table_list.length;
+		tablesChanged = false;
+		for(i = 0;i < len;i++){
+			table_data.push({'table_id':table_list[i]});
+			if(tableIds.indexOf(table_list[i]) < 0){
+				tablesChanged = true;
+			}
+		}
+		table_data = JSON.stringify(table_data);
+		var checkin_date = document.getElementById('checkin-input-date').value;//$('#checkin-input-date').val();
+		var checkin_time = document.getElementById('checkin-input-time').value;//$('#checkin-input-time').val();
+		var arrival_time = new Date(checkin_date+" "+checkin_time);
+		arrival_time = moment(arrival_time).format('YYYY-MM-DD HH:mm:ss');
+		var status = $('#checkin-input-status').val();
+		var restaurant_id = '<?php echo $user_data['id'];?>';
+		var urlStr = "";
+		//Check user type
+		//isReserved
+		if($("#checkin-input-type").val()=='reserved'){
+			urlStr = "reservations/reservation_update_batch";
+			data = [{'id':id,'arrival_time':arrival_time,'status':status,'customer_size':customer_size}];
+			reservationTablesChanged(reservation_id,table_data);
+		}else{
+			urlStr = "reservation_guest/add_reservation";
+			data = {'restaurant_id':restaurant_id,'server_id':server_id,'guest_name':customer_name,
+			'notes':notes,'customer_size':customer_size,'arrival_time':arrival_time,'turn_time':turn_time,
+			'status':status};
+		}
+		//console.log(table_data);
+		data = JSON.stringify(data);
+		$('.page-loader').show();
+		//Make request
+		$.ajax({
+            type: "POST",
+            url: "<?php echo base_url(); ?>"+urlStr,
+            data: {'data':data,'tables':table_data,
+			'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'},
+            success: function(json) {
+				// return success
+				console.log(json);
+				//Show form
+				$('#view-checkin-user').modal('hide');
+				//Reload table view, current customers and waiting customers
+				showTables();
+				loadInLineCustomers();
+				loadReservations();
+				loadServerAssignment();
+				$('.page-loader').hide();
+			},
+			error: function (request, ajaxOptions, thrownError) {
+				console.log(request.responseText);
+				$('.page-loader').hide();
+			}
+		});
 	});
-	*/
+}
+
+//Change for reserved customers
+function reservationChanged(data){
+	//Make request
+	$.ajax({
+        type: "POST",
+        url: "<?php echo base_url(); ?>"+"reservations/reservation_update_batch",
+        data: {'data':data,
+		'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'},
+        success: function(json) {
+			console.log(json);
+		},
+		error: function (request, ajaxOptions, thrownError) {
+			console.log(request.responseText);
+			
+		}
+	});
+}
+
+//Change for guest customers
+function guestReservationChanged(data){
+	//Make request
+	$.ajax({
+        type: "POST",
+        url: "<?php echo base_url(); ?>"+"reservation_guest/update_reservation",
+        data: {'data':data,
+		'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'},
+        success: function(json) {
+			console.log(json);
+		},
+		error: function (request, ajaxOptions, thrownError) {
+			console.log(request.responseText);
+			
+		}
+	});
+}
+
+function reservationTablesChanged(reservation_id,table_data){
+	//Make request
+	$.ajax({
+        type: "POST",
+        url: "<?php echo base_url(); ?>"+"reservations/change_tables",
+        data: {'reservation_id':reservation_id,'tables':table_data,
+		'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'},
+        success: function(json) {
+			console.log(json);
+		},
+		error: function (request, ajaxOptions, thrownError) {
+			console.log(request.responseText);
+			
+		}
+	});
+}
+
+function guestReservationTablesChanged(reservation_id,table_data){
+	//Make request
+	$.ajax({
+        type: "POST",
+        url: "<?php echo base_url(); ?>"+"reservation_guest/change_tables",
+        data: {'reservation_guest_id':reservation_id,'tables':table_data,
+		'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'},
+        success: function(json) {
+			console.log(json);
+		},
+		error: function (request, ajaxOptions, thrownError) {
+			console.log(request.responseText);
+			
+		}
+	});
+}
+
+//Edit customer status
+function changeCustomerStatus(context,type){
+	//Add tables to option list
+	table_list = $('#status-table-list');
+	len = tables.length;
+	div = "";
+	for(i = 0;i < len;i++){
+		table_list.append("<option value='"+tables[i].table_id+"' >"+tables[i].table_id+"<span>:"+tables[i].num_chairs+" </span></option>");
+	}
+	//Refresh selectable list
+	table_list.selectpicker("refresh");
+	//Change format of turn time
+	$('#status-input-turn-time').mask("00:00:00");
+	//Clear form
+	//$('#view-status-user').find('form')[0].reset();
+	//Show form
+	$('#view-status-user').modal('show');
+	//Get current div
+	var tab_div = $(context);
+	var customer_type = tab_div.data('customer-type'); 
+	var customer_name = tab_div.data('customer-name');
+	var customer_size = tab_div.data('customer-size');
+	var reservation_id = tab_div.data('reservation-id');
+	var notes = tab_div.data('notes');
+	var server_id = tab_div.data('server-id');
+	var turn_time = tab_div.data('turn-time');
+	var turn_time_val = tab_div.data('turn-time-val');
+	var arrival_time = tab_div.data('arrival-time');
+	var status = tab_div.data('status');
+	//Set data on modal
+	$("#status-input-name").val(customer_name);
+	document.getElementById("status-input-turn-time").setAttribute('value',turn_time);
+	document.getElementById("status-input-reservation-id").setAttribute('value',reservation_id);
+	document.getElementById("status-input-customer-size").setAttribute('value',parseInt(customer_size));
+	document.getElementById("status-input-notes").setAttribute('value',notes);
+	//Select server
+	try{
+		$('#status-server-list option:selected').removeAttr('selected');
+		$('#status-server-list').val(server_id).change();
+	}catch(exp){
+		console.log(exp);
+	}
+	//Select table
+	user_table = tab_div.data('table-ids');
+	user_table = String(user_table);
+	user_table = user_table.split(",");
+	table_list = $('#status-table-list');
+	table_list.html("");
+	len = tables.length;
+	for(i = 0;i < len;i++){
+		if(user_table.indexOf(tables[i].table_id) > -1){
+				table_list.append("<option value='"+tables[i].table_id+"' selected>"+
+				tables[i].table_id+"<span>:"+tables[i].num_chairs+" </span></option>");
+		}else{
+			table_list.append("<option value='"+tables[i].table_id+"' >"+
+			tables[i].table_id+"<span>:"+tables[i].num_chairs+" </span></option>");
+		}
+	}
+	//Change arrival time
+	var arrival_time_array  = arrival_time.split(" ");
+	time_val = moment(arrival_time,'YYYY-MM-DD h:mm:ss').format("h:mm A");
+	$("#status-input-date").val(arrival_time_array[0]);
+	$("#status-input-time").val(time_val);
+	
+	
+	//Refresh selectable list
+	table_list.selectpicker("refresh");
+	switch(type){
+		case 'waiting': //Customers on waiting list
+			$("#status-input-type").val(customer_type).change();
+			$("#status-input-status").val(1).change();
+			break;
+		case 'current':
+			$("#status-input-type").val(customer_type).change();
+			$("#status-input-status").val(2).change();
+			break;
+		case 'onhold':
+			$("#status-input-type").val("reserved").change();
+			$("#status-input-status").val(0).change();
+			break;
+	}
+	
+	//On click save button
+	$('#save-status-data').unbind('click').bind('click', function(){
+		$('.page-loader').show();
+		//Get data info
+		var customer_name = $('#status-input-name').val();
+		var id = tab_div.data('id');
+		var tableIds = String(tab_div.data('table-ids'));
+		var notes = document.getElementById('status-input-notes').value;//$('#getNotes').val();
+		tableIds = tableIds.split(',');
+		var reservation_id = $('#status-input-reservation-id').val();
+		var server_id = $('#status-server-list').val();
+		var customer_size = document.getElementById('status-input-customer-size').value;//$('checkin-input-customer-size').val();
+		var turn_time = $('#status-input-turn-time').val();
+		var table_data = [];
+		var table_list = $('#status-table-list').val();
+		len = (table_list==null) ? 0:table_list.length;
+		var tablesChanged = false;
+		for(i = 0;i < len;i++){
+			table_data.push({'table_id':table_list[i]});
+			if(tableIds.indexOf(table_list[i]) < 0){
+				tablesChanged = true;
+			}
+		}
+		table_data = JSON.stringify(table_data);
+		var status = $('#status-input-status').val();
+		var restaurant_id = '<?php echo $user_data['id'];?>';
+		var urlStr = "";
+		var isReserved = (customer_type == "reserved") ? true:false;
+		//Check user type
+		if(isReserved){
+			urlStr = "reservations/reservation_update_batch";
+			data = [{'id':id,'arrival_time':arrival_time,'status':status,'customer_size':customer_size}];
+			//Change reservation chairs
+			reservationTablesChanged(reservation_id,table_data);
+		}else{
+			urlStr = "reservation_guest/update_reservation";
+			data = [{'id':id,'notes':notes,'customer_size':customer_size,'arrival_time':arrival_time,'turn_time':turn_time,
+			'status':status}];
+			//Change reservation chairs
+			reservationTablesChanged(reservation_id,table_data);
+		}
+		data = JSON.stringify(data);
+		//Make request
+		$.ajax({
+			type: "POST",
+			url: "<?php echo base_url(); ?>"+urlStr,
+			data: {'data':data,'tables':table_data,
+			'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'},
+			success: function(json) {
+				console.log(json);
+				$('#view-status-user').modal('hide');
+				showTables();
+				loadInLineCustomers();
+				loadReservations();
+				loadServerAssignment();
+				loadOnholdCustomers();
+				$('.page-loader').hide();
+			},
+			error: function (request, ajaxOptions, thrownError) {
+				console.log(request.responseText);
+				$('.page-loader').hide();
+			}
+		});
+		
+	});
+	
 }
 
 var isReserved = false;
@@ -1262,6 +1721,9 @@ function checkinAutocompleteAction(context){
 	document.getElementById("checkin-input-turn-time").setAttribute('value',list.data('turn-time'));
 	document.getElementById("checkin-input-reservation-id").setAttribute('value',list.data('reservation-id'));
 	document.getElementById("checkin-input-customer-size").setAttribute('value',parseInt(list.data('reservation-customer-size')));
+	document.getElementById("getReservationId").setAttribute('value',list.data('id'));
+	document.getElementById("getTableIds").setAttribute('value',list.data('table-ids'));
+	document.getElementById("getNotes").setAttribute('value',list.data('notes'));
 	//Select server
 	try{
 		$('#checkin-server-list option:selected').removeAttr('selected');
@@ -1271,6 +1733,8 @@ function checkinAutocompleteAction(context){
 	}
 	//Select table
 	user_table = list.data('table-ids');
+	user_table = String(user_table);
+	console.log(user_table);
 	user_table = user_table.split(",");
 	table_list = $('#checkin-table-list');
 	table_list.html("");

@@ -71,7 +71,55 @@
 				<h4 class="modal-title">Table Info</h4>
 			</div>
 			<div class="modal-body">
-				
+			<div class="row">
+				<div class="col-sm-6">
+					<label for="staus-select" class="p-t-10">Table ID</label>
+					<div class="m-t-10 fg-line">
+						<input type="text" class="input-sm form-control" id="table-info-table-id"
+							placeholder="101" disabled>
+					</div>
+				</div>
+				<div class="col-sm-6">
+					<label for="staus-select" class="p-t-10">Section ID</label>
+					<div class="m-t-10 fg-line">
+						<input type="text" class="input-sm form-control" id="table-info-section-id"
+							placeholder="2" disabled>
+					</div>
+				</div>
+			</div>
+			<div id="table-info-reservation" class="row">
+				<div class="col-sm-6">
+					<label for="staus-select" class="p-t-10">Customer Name</label>
+					<div class=" fg-line">
+						<input type="text" class="input-sm form-control" id="table-info-customer-name"
+							placeholder="John Doe" disabled>
+					</div>
+				</div>
+				<div class="col-sm-6">
+					<label for="staus-select" class="p-t-10">Server Name</label>
+					<div class="fg-line">
+						<input type="text" class="input-sm form-control" id="table-info-server-name"
+							placeholder="John Doe" disabled>
+					</div>
+				</div>
+				<div class="col-sm-12">
+					<label for="staus-select" class="p-t-10">Turn Time</label>
+					<div class=" fg-line">
+						<input type="text" class="input-sm form-control" id="table-info-turn-time"
+							placeholder="4:30 PM" disabled>
+					</div>
+				</div>
+			</div>
+			<label for="staus-select" class="p-t-10">Check-In Type</label>
+			<div class="fg-line"> 
+                <select class="selectpicker" id="table-info-status">
+                    <option value="0" id="table-info-status-unavailable">Unavailable</option>
+                    <option value="1" id="table-info-status-available">Available</option>
+                    <option value="2" id="table-info-status-occupied">Occupied</option>
+                    <option value="3" id="table-info-status-dirty">Check Table</option>
+                    <option value="4" id="table-info-status-closed">Closed</option>
+                </select>
+			</div>
 			</div>
 			<div class="modal-footer">
 				<button id="save-table-data-info" type="button" class="btn btn-link">Save changes</button>
@@ -138,13 +186,20 @@
 							</div>
                         </div>
 					</div>
-					<label for="staus-select" class="p-t-10">Check In Time</label>
+					<label for="staus-select" class="">Notes</label>
+					<div class="fg-line">
+						<input type="textarea" class="input-sm form-control" id="checkin-input-notes"
+							placeholder="I want a cup of coffee"/>
+					</div>
+					
+					
+					<label for="staus-select" class="p-t-10">Arrival Time</label>
 					<div class="m-t-10 row">
 						<div class="col-sm-6">
                             <div class="input-group form-group">
                                 <span class="input-group-addon"><i class="md md-event"></i></span>
                                 <div class="dtp-container dropdown fg-line">
-                                <input type='text' id="checkin-input-date" class="form-control date-picker" value="<?php echo date("d/m/Y");?>" data-toggle="dropdown" placeholder="Select Date">
+                                <input type='text' id="checkin-input-date" class="form-control date-picker" value="<?php echo date("Y-m-d");?>" data-date-format='YYYY-MM-DD' data-toggle="dropdown" placeholder="Select Date">
 								</div>
                             </div>
                         </div>     
@@ -163,10 +218,114 @@
                             <option value="1" id="checkin-input-waiting">Waiting</option>
                         </select>
 					</div>
+					<input type="hidden" id="getReservationId" /> 
+					<input type="hidden" id="getTableIds" /> 
+					<input type="hidden" id="getNotes" /> 
 				<form>
 			</div>
 			<div class="modal-footer">
 				<button id="save-checkin-data" type="button" class="btn btn-link">Save changes</button>
+				<button type="button" class="btn btn-link" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Modal to view to waiting/checked-in/onhold customers-->
+<div class="modal fade" id="view-status-user" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">Customer Info</h4>
+			</div>
+			<div class="modal-body">
+				<form role="form" name="status-form" id="status-form" action="#" method="post" enctype="multipart/form-data">
+					<label for="staus-select" class="p-t-10">Check-In Type</label>
+					<div class="fg-line"> 
+                        <select class="selectpicker" id="status-input-type" disabled>
+                            <option value="guest" id="status-input-guest">Guest</option>
+                            <option value="reserved" id="status-input-reserved">Reserved</option>
+                        </select>
+					</div>
+					<div class="m-t-10 fg-line">
+						<input type="text" class="input-sm form-control" id="status-input-name" 
+							placeholder="John Doe" disabled>
+					</div>
+					<div class="m-t-10 fg-line">
+						<input type="text" class="input-sm form-control" id="status-input-reservation-id"
+							placeholder="ID" Disabled>
+					</div>
+					<div class="m-t-10 row">
+						<div class="col-sm-6">
+							<select class="selectpicker" id="status-server-list" data-live-search="true">
+								<?php
+									foreach ($servers as $row):
+										echo "<option id='status-server-list-".$row->user_id."' value='".$row->user_id."'>".$row->name."</option>";
+									endforeach;
+								?>
+							</select>
+						</div>
+						<div class="col-sm-6">
+							<select class="selectpicker" id="status-table-list" data-live-search="true" multiple>
+								
+							</select>
+						</div>
+					</div>
+					<div class="row m-t-10">
+						<div class="col-sm-6">
+							<input type="number" class="input-sm form-control" id="status-input-customer-size"
+								placeholder="Customer Size; eg 2" />
+						</div>
+						<div class="col-sm-6">
+                            <div class="input-group form-group">
+                                <span class="input-group-addon"><i class="md md-access-time"></i></span>
+                                <div class="dtp-container dropdown fg-line">
+									<input type='text' id="status-input-turn-time" class="form-control" data-format="hh:mm:ss" data-toggle="dropdown" value="01:00:00" placeholder="Turn Time">
+								</div>
+							</div>
+                        </div>
+					</div>
+					<label for="staus-select" class="">Notes</label>
+					<div class="fg-line">
+						<input type="textarea" class="input-sm form-control" id="status-input-notes"
+							placeholder="I want a cup of coffee"/>
+					</div>
+					
+					
+					<label for="staus-select" class="p-t-10">Arrival Time</label>
+					<div class="m-t-10 row">
+						<div class="col-sm-6">
+                            <div class="input-group form-group">
+                                <span class="input-group-addon"><i class="md md-event"></i></span>
+                                <div class="dtp-container dropdown fg-line">
+                                <input type='text' id="status-input-date" class="form-control date-picker" value="<?php echo date("Y-m-d");?>" data-date-format='YYYY-MM-DD' data-toggle="dropdown" placeholder="Select Date">
+								</div>
+                            </div>
+                        </div>     
+                        <div class="col-sm-6">
+                            <div class="input-group form-group">
+                                <span class="input-group-addon"><i class="md md-access-time"></i></span>
+                                <div class="dtp-container dropdown fg-line">
+                                <input type='text' id="status-input-time" class="form-control time-picker" value="<?php echo date("h:i A");?>" data-toggle="dropdown" placeholder="Select Time">
+                            </div>
+							</div>
+                        </div>
+					</div>
+					<label for="staus-select" class="p-t-10">Update Status</label>
+					<div class="fg-line"> 
+                        <select class="selectpicker" id="status-input-status">
+							<option value="2" id="status-input-checkedin">Checked In</option>
+                            <option value="1" id="status-input-waiting">Waiting</option>
+                            <option value="0" id="status-input-onhold">On Hold</option>
+                        </select>
+					</div>
+					<input type="hidden" id="status-getReservationId" /> 
+					<input type="hidden" id="status-getTableIds" /> 
+					<input type="hidden" id="status-getNotes" /> 
+				<form>
+			</div>
+			<div class="modal-footer">
+				<button id="save-status-data" type="button" class="btn btn-link">Save changes</button>
 				<button type="button" class="btn btn-link" data-dismiss="modal">Close</button>
 			</div>
 		</div>
