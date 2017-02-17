@@ -1,6 +1,11 @@
 <!-- Header -->
-<?php $this->load->view('header');  ?>
-
+<?php 
+if($user_data['is_logged_in']){
+	$this->load->view('header');
+}else{
+	$this->load->view('header-public');
+}
+?>
 <section id="content">
 	<div class="container">
 		<!-- Blog Posts -->
@@ -106,7 +111,14 @@
 </section>
 
 
-<?php $this->load->view('footer');?>
+<!-- Footer -->
+<?php 
+if($user_data['is_logged_in']){
+	$this->load->view('footer');
+}else{
+	$this->load->view('footer-public');
+}
+?>
 
 <script
 	src="<?= base_url();?>material/vendors/nicescroll/jquery.nicescroll.min.js"></script>

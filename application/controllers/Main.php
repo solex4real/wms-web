@@ -112,7 +112,11 @@ class main extends CI_Controller {
 					'is_logged_in' => 1
 				);
 				$this->session->set_userdata($data);
-				redirect('home');
+				if(empty($this->session->flashdata('link'))){
+					redirect('home');
+				}else{
+					redirect($this->session->flashdata('link'));
+				}
 			}else{
 				redirect('main/login');
 			}
@@ -142,7 +146,15 @@ class main extends CI_Controller {
 				'is_logged_in' => 1
 			);
 			$this->session->set_userdata($data);
-			redirect('home');
+			//redirect('home');
+			if(empty($this->session->userdata('link'))){
+				redirect('home');
+			}else{
+				$link = $this->session->userdata('link');
+				$this->session->userdata('link',"");
+				redirect($link);
+			}
+			
 		}else{
 			redirect('main/login');
 		}
@@ -185,7 +197,14 @@ class main extends CI_Controller {
 				);
 				$this->session->set_userdata($data);
 				//echo "pass";
-				redirect('home');
+				//redirect('home');
+				if(empty($this->session->userdata('link'))){
+					redirect('home');
+				}else{
+					$link = $this->session->userdata('link');
+					$this->session->userdata('link',"");
+					redirect($link);
+				}
 				}else{
 					//echo "failed";
 					$this->form_validation->set_message('validate_credentials','Failed try again');
@@ -210,16 +229,19 @@ class main extends CI_Controller {
 			);
 			$this->load->view('about',$data);
 		}else{
-			redirect('/main/login');
+			$user_data = $this->session->userdata('is_logged_in');
+			$data = array(
+					'user_data' => $user_data,
+					'name' => "Guest",
+					'view' => 'Home',
+					'icon_path'=>""
+			);
+			$this->load->view('about',$data);
 		}		
 	}
 	
 	public function test(){
-		$this->load->model('model_users');
-		$email = "solex@mail.com";
-		$result =   $this->model_users->get_user_email($email);
-		
-		print_r($result);
+		echo $this->session->flashdata('link');
 	}
 	
 	public function check_username(){

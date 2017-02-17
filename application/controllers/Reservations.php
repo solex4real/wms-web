@@ -3,7 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Reservations extends CI_Controller {
 
-
+	/*
 	function __construct()
 	{
 		parent::__construct();
@@ -13,7 +13,8 @@ class Reservations extends CI_Controller {
 			redirect('/main/login');
 		}
 	}
-
+	*/
+	
 	public function index()
 	{
 		if($this->session->userdata('type')==="restaurant"){
@@ -54,8 +55,17 @@ class Reservations extends CI_Controller {
 	public function test(){
 		$this->load->model('model_reservations');
 		$user_data = $this->session->userdata;
-		//$query = $this->model_reservations->get_reservations(2000000,1,"","desc");
-		$query = $this->model_reservations->get_server_assignment($user_data['id']);
+		$tables = array("4","8");
+		$table_amount = array("9","14");
+		$customer_size_defined = 12;
+		$table_ids = array("4","146","120","119","118","156","32",
+		"11","45","149","148","147","142","129","14","68","33",
+		"79","76","74","70","69","78");
+		$num_chairs = array("4","4","4","4","4","4","4","4","4",
+		"8","8","8","8","8","8","8","8","8","8","8","8","8","8");
+		
+		$query = $this->model_reservations->get_assigned_tables($tables,$table_amount,
+		$customer_size_defined,$table_ids,$num_chairs);
 		//echo count(array())==0;
 		//var_dump($query);
 		print_r($query);

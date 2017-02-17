@@ -78,7 +78,7 @@ class Reservation_guest extends CI_Controller {
 		$this->load->model('Model_guest');
 		$tables = $this->input->post('tables');
 		$reservation_guest_id = $this->input->post('reservation_guest_id');
-		$tables = json_decode($tables);
+		$tables = (array) json_decode($tables);
 		/*
 		$tables = array(
 			array('table_id'=>14),

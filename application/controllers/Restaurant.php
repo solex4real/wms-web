@@ -474,13 +474,13 @@ class Restaurant extends CI_Controller {
 		
 	}
 	
-	public function Restaurant_Profile($restaurant_username){
-		if($this->session->userdata('is_logged_in')){
+	public function Profile($restaurant_username){
 		$user_data = $this->session->userdata;
 		$this->load->model('model_restaurant');
 		$this->load->model('model_servers');
 		$date = date('Y-m-d H:i:s');
 		$data_restaurant = $this->model_restaurant->get_name($restaurant_username);
+		if($this->session->userdata('is_logged_in')){
 		if(!empty($data_restaurant)){
 			$data = array(
 				'user_data' => $user_data,
@@ -496,12 +496,20 @@ class Restaurant extends CI_Controller {
 		$this->load->view('restaurant-profile', $data);
 		}
 		}else{
-			//echo "Failed";
-			redirect('/main/login');
+			$user_data = $this->session->userdata('is_logged_in');
+			$data = array(
+				'user_data' => $user_data,
+				'data_restaurant' => $data_restaurant,
+				'name' => $user_data['name'],
+				'email' => $user_data['email'],
+				'user_id' => $user_data['id'],
+				'icon_path'=>$user_data['icon_path'],
+				'view' => 'Home',
+				'data' => $this->model_restaurant->get_available_servers($data_restaurant->restaurant_id,$date),
+				'servers'=>$this->model_servers->get_servers($data_restaurant->restaurant_id)
+			);
+			$this->load->view('restaurant-profile', $data);
 		}
-		
-		
-		
 	}
 	
 	public function test(){

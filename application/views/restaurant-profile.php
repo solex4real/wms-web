@@ -1,6 +1,11 @@
 <!-- Header -->
-            <?php $this->load->view('header');  ?>
-            
+<?php 
+if($user_data['is_logged_in']){
+	$this->load->view('header');
+}else{
+	$this->load->view('header-public');
+}
+?>
             <section id="content">
                 <div class="container">
 				<div class="row">
@@ -240,11 +245,14 @@
             </section>
         </section>
         
-       
-        
-        <!-- Javascript Libraries -->
-        <script src="<?= base_url();?>material/js/jquery-2.1.1.min.js"></script>
-        <script src="<?= base_url();?>material/js/bootstrap.min.js"></script>
+<!-- Footer -->
+<?php 
+if($user_data['is_logged_in']){
+	$this->load->view('footer');
+}else{
+	$this->load->view('footer-public');
+}
+?>
         
         <script src="<?= base_url();?>material/vendors/flot/jquery.flot.min.js"></script>
         <script src="<?= base_url();?>material/vendors/flot/jquery.flot.resize.min.js"></script>
@@ -403,8 +411,8 @@
 				var server_id = "";
 				var server_name = "";
 				function reserve(ser_id,ser_name,server_icon){
-					//alert("Server: "+serverAvailable(ser_id)+" Table: "+tableAvailable());
-					if(tableAvailable&&serverAvailable(ser_id)){
+					var isLoggedIn = ("<?= $user_data['is_logged_in']?>"==true);
+					if(tableAvailable&&serverAvailable(ser_id)&&isLoggedIn){
 						//Get Values
 						server_id = ser_id;
 						server_name = ser_name;
@@ -423,6 +431,11 @@
 					}else{
 						if(!tableAvailable){
 							swal("No Tables Available","Please try other reservation dates for available table spaces.");
+						}else if(!isLoggedIn){
+							a = "<?php
+								$this->session->set_userdata('link',"restaurant/profile/".$data_restaurant->restaurant_username); 
+							?>";
+							window.location.replace("<?= base_url()?>"+"main/login");
 						}else{
 							swal("Server No Longer Available","Please try other reservation dates for available servers.");
 						}

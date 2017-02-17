@@ -62,8 +62,16 @@ class Home extends CI_Controller {
 			}
 			
 		}else{
-			//echo "Failed";
-			redirect('/main/login');
+			$this->load->model('model_home');
+			$user_data = $this->session->userdata('is_logged_in');
+			$data = array(
+					'user_data' => $user_data,
+					'name' => "Guest",
+					'view' => 'Home',
+					'icon_path'=>"",
+					'data' => $this->model_home->get_restaurants("")
+			);
+			$this->load->view('home',$data);
 		}
 	}
 	
@@ -73,7 +81,7 @@ class Home extends CI_Controller {
 		$query = $this->model_home->get_autocomplete($search_data);
 	
 		foreach ($query->result() as $row):
-		echo "<div><a href='" . base_url() . "restaurant/restaurant_profile/" . $row->restaurant_username . " ' class='list-group-item'>" . $row->name . "</a></div>";
+		echo "<div><a href='" . base_url() . "restaurant/profile/" . $row->restaurant_username . " ' class='list-group-item'>" . $row->name . "</a></div>";
 		endforeach;
 	}
 	

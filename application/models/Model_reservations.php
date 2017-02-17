@@ -376,7 +376,8 @@ class Model_reservations extends CI_Model {
 		return true;
 	}
 	
-	public function get_assigned_tables($tables,$table_amount,$customer_size_defined){
+	public function get_assigned_tables($tables,$table_amount,$customer_size_defined,$table_ids,
+	$num_chairs){
 		$customer_size = $customer_size_defined;
 		$assigned_tables = array();
 		$len = count($tables)-1;
@@ -441,7 +442,29 @@ class Model_reservations extends CI_Model {
 				}
 			}
 		}
-		return $assigned_tables;
+		$temp_assigned_tables = $assigned_tables;
+		$assigned_table_ids = array();
+		$notFound = true;
+		//Get table ids for reservation
+		foreach($temp_assigned_tables as $value){
+			//Check if number of chairs equals assigned chair
+			$i=0;
+			while($notFound){
+				if($value == $num_chairs[$i]){
+					array_push($assigned_table_ids,$table_ids[$i]);
+					$notFound = false;
+				}
+				$i++;
+			}
+			$notFound = true;
+		}
+		
+		$data = array(
+			"table_size"=>$assigned_tables,
+			"table_ids"=>$assigned_table_ids
+		);
+		//return $assigned_tables;
+		return $data;
 	}
 	
 	public function get_reservation_dates($restaurant_id,$range="Today"){
@@ -498,43 +521,69 @@ class Model_reservations extends CI_Model {
 		strtotime('+60 minutes', strtotime($start)));//add 60 mins from datetime 
 		
 		//Sub query of reservation tables
-		$this->db->select('reservation_tables.reservation_id, tables.num_chairs as table_size, 
-		reservation_tables.restaurant_id');
+		$this->db->select('reservation_tables.reservation_id, reservation_tables.reservation_guest_id,
+		tables.num_chairs as table_size, 
+		reservation_tables.restaurant_id, tables.table_id');
 		$this->db->from('reservation_tables');
-		$this->db->join('tables','reservation_id.table_id = tables.table_id', 'inner');
+		$this->db->join('tables','reservation_tables.table_id = tables.table_id', 'inner');
 		$this->db->where('reservation_tables.restaurant_id ',$restaurant_id);
 		$this->db->where('tables.restaurant_id ',$restaurant_id);
 		$subQuery =  $this->db->get_compiled_select();
 		
-		//Sub query of used tables
+		
+		//Sub query of used tables for reserved customers
 		$this->db->select('COUNT(reservation_tables.table_size) as table_size_total, reservation_tables.table_size, 
-		reservation.reservation_time, reservation_tables.reservation_id, reservation.restaurant_id, reservation.customer_size');
+		reservation.reservation_time, reservation_tables.reservation_id, reservation.restaurant_id, 
+		reservation.customer_size, reservation_tables.table_id');
 		$this->db->from('reservation');
 		$this->db->join("($subQuery) as reservation_tables", 'reservation.reservation_id = reservation_tables.reservation_id', 'left');
 		$this->db->where('reservation.restaurant_id ',$restaurant_id);
 		$this->db->having('reservation.reservation_time <=',$start);
 		$this->db->having('ADDTIME(reservation.reservation_time, "0 01:00:00") >=',$start);
-		$this->db->group_by('reservation_tables.table_size');
+		$this->db->group_by('reservation.reservation_id');
+		$subQuery1 = $this->db->get_compiled_select();
 		
+		//Sub query of used tables for guest customers
+		$this->db->select('COUNT(reservation_tables.table_size) as table_size_total, reservation_tables.table_size, 
+		reservation_guest.arrival_time as reservation_time, reservation_tables.reservation_id, 
+		reservation_guest.reservation_guest_id as reservation_id, reservation_guest.customer_size, 
+		reservation_tables.table_id');
+		$this->db->from('reservation_guest');
+		$this->db->join("($subQuery) as reservation_tables", 'reservation_guest.reservation_guest_id = reservation_tables.reservation_guest_id', 'left');
+		$this->db->where('reservation_guest.restaurant_id ',$restaurant_id);
+		$this->db->having('reservation_guest.arrival_time <=',$start);
+		$this->db->having('ADDTIME(reservation_guest.arrival_time, "0 01:00:00") >=',$start);
+		$this->db->group_by('reservation_guest.reservation_guest_id');
 		$subQuery2 = $this->db->get_compiled_select();
+		
+		$this->db->query($subQuery1." UNION ".$subQuery2);
+		$subQuery3 = $this->db->last_query();
+		
 		//,restaurant_tables.quantity,tables.table_size_total
 		//Get available tables
-		$this->db->select('restaurant_tables.restaurant_id,(restaurant_tables.quantity - 
-		tables.table_size_total) as table_quantity, restaurant_tables.quantity,
-		restaurant_tables.size as table_size');
-		$this->db->from('restaurant_tables'); 
-		$this->db->join("($subQuery2) as tables", 'restaurant_tables.size = tables.table_size', 'left');
-		$this->db->where('restaurant_tables.restaurant_id',$restaurant_id);
-		$this->db->order_by("restaurant_tables.size", "asc");
+		$this->db->select('tables.restaurant_id,(COUNT(tables.num_chairs) - 
+		res_tables.table_size_total) as table_quantity, COUNT(tables.num_chairs),
+		tables.num_chairs as table_size, GROUP_CONCAT(tables.table_id) as table_ids,
+		GROUP_CONCAT(tables.num_chairs) as num_chairs,
+		COUNT(tables.num_chairs) as quantity');
+		$this->db->from('tables'); 
+		$this->db->join("($subQuery3) as res_tables", 'tables.table_id = res_tables.table_id', 'left');
+		//$this->db->where('tables.restaurant_id',$restaurant_id);
+		$this->db->group_by('tables.num_chairs');
+		$this->db->order_by("tables.num_chairs", "asc");
 		$query = $this->db->get();
 		$result = $query->result();
 		$table_size = array();
+		$table_ids = array();
+		$num_chairs = array();
 		$table_quantity  = array();
 		$table_total = array();
 		$total = array();
 		foreach($result as $row)
 		{
 			array_push($table_size, $row->table_size);
+			$table_ids = array_merge($table_ids, explode(",",$row->table_ids));
+			$num_chairs = array_merge($num_chairs, explode(",",$row->num_chairs));
 			if(empty($row->table_quantity)){
 				array_push($table_quantity, $row->quantity);
 				array_push($table_total, $row->quantity*$row->table_size);
@@ -544,6 +593,8 @@ class Model_reservations extends CI_Model {
 			}
 		}
 		$data = array(
+			"table_ids"=>$table_ids,
+			"num_chairs"=>$num_chairs,
 			"size"=>$table_size,
 			"quantity"=>$table_quantity,
 			"total"=>$table_total,
@@ -557,12 +608,23 @@ class Model_reservations extends CI_Model {
 		$end = date('Y-m-d H:i:s', 
 		strtotime('+60 minutes', strtotime($start)));//add 60 mins from datetime 
 		
-		//Sub query of reservation time
+		//Sub query of reserved reservation time
 		$this->db->select('reservation_time, server_id, restaurant_id, customer_size')->from('reservation');
 		$this->db->where('reservation.restaurant_id ',$restaurant_id);
 		$this->db->having('reservation.reservation_time <=',$start);
 		$this->db->having('ADDTIME(reservation.reservation_time, "0 01:00:00") >=',$start);
-		$subQuery =  $this->db->get_compiled_select();
+		$subQuery1 =  $this->db->get_compiled_select();
+		
+		//Sub query for guest reservation time
+		$this->db->select('arrival_time as reservation_time, server_id, restaurant_id, customer_size')->from('reservation_guest');
+		$this->db->where('reservation_guest.restaurant_id ',$restaurant_id);
+		$this->db->having('reservation_guest.arrival_time <=',$start);
+		$this->db->having('ADDTIME(reservation_guest.arrival_time, "0 01:00:00") >=',$start);
+		$subQuery2 =  $this->db->get_compiled_select();
+		
+		//Combined query
+		$this->db->query($subQuery1." UNION ".$subQuery2);
+		$subQuery = $this->db->last_query();
 		
 		
 		$this->db->select('servers.user_id, servers.server_limit, restaurants.table_size, reservation.customer_size, servers.server_limit,
@@ -729,11 +791,14 @@ class Model_reservations extends CI_Model {
 				'arrival_time' => $reservation_time,
 				'date' => $date,
 				'date_modified'=>$date,
-				'status' => 2
+				'status' => 0
 		);
 		//Get tables_size, table_quantity
 		$table_data = $this->get_available_tables($restaurant_id,$reservation_time);
-		$customer_table = $this->get_assigned_tables($table_data['size'],$table_data['quantity'],$customer_size); 
+		$assigned_table = $this->get_assigned_tables($table_data['size'],$table_data['quantity'],
+		$customer_size,$table_data['table_ids'],$table_data['num_chairs']); 
+		$customer_table = $assigned_table['table_size'];
+		$table_ids = $assigned_table['table_ids'];
 		$this->db->insert ( 'reservation', $data );
 		$data_1 = array();
 		if ($this->db->affected_rows () > 0) {
@@ -744,6 +809,7 @@ class Model_reservations extends CI_Model {
 				$customer_table_data['table_size'] = $customer_table[$i];
 				$customer_table_data['restaurant_id'] = $restaurant_id;
 				$customer_table_data['reservation_id'] = $reservation_id;
+				$customer_table_data['table_id'] = $table_ids[$i];
 				$this->db->insert("reservation_tables",$customer_table_data);
 				$i++;
 			}

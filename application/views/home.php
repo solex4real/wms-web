@@ -1,5 +1,11 @@
 <!-- Header -->
-<?php $this->load->view('header');  ?>
+<?php 
+if($user_data['is_logged_in']){
+	$this->load->view('header');
+}else{
+	$this->load->view('header-public');
+}
+?>
 
 <section id="content">
 	<div class="container">
@@ -83,7 +89,7 @@
 		
 		
 		echo "<div class='m-b-5'>";
-		echo "<a href='".base_url()."restaurant/restaurant_profile/".$row->restaurant_username."' class='btn btn-sm btn-primary waves-button m-r-5' role='button'>Select</a>";
+		echo "<a href='".base_url()."restaurant/profile/".$row->restaurant_username."' class='btn btn-sm btn-primary waves-button m-r-5' role='button'>Select</a>";
 						//echo "<a href='#' class='btn btn-sm btn-default' role='button'>Read more</a>";
 						
 			echo "</div>";
@@ -100,9 +106,16 @@
 </section>
 </section>
 
-<?php $this->load->view('footer');?>
 
 
+<!-- Footer -->
+<?php 
+if($user_data['is_logged_in']){
+	$this->load->view('footer');
+}else{
+	$this->load->view('footer-public');
+}
+?>
 	
 <!-- Vendor CSS -->
 <link href="<?= base_url();?>material/vendors/animate-css/animate.min.css" rel="stylesheet">
