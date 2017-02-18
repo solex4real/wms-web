@@ -126,6 +126,7 @@
 					});
 				});
 				var tables = {};
+				/*
 				//Reservation tables
 				var table = $("#data-table-command").bootgrid({
 					ajax: true,
@@ -157,7 +158,7 @@
                 }
 				}).on("loaded.rs.jquery.bootgrid", function(e, rows)
 				{
-				/* Executes after data is loaded and rendered */
+			
 				table.find(".command-edit").on("click", function(e)
 				{
 					//Show dialog
@@ -171,6 +172,7 @@
 				//alert("You pressed delete on row: " + $(this).data("row-id"));
 				});
 				});
+				*/
 				
 				$('body').on('click', '#add-table', function(){
 					$('#edit-table').modal('show');

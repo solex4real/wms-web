@@ -111,12 +111,7 @@ class main extends CI_Controller {
 					'server'=>$result->server,
 					'is_logged_in' => 1
 				);
-				$this->session->set_userdata($data);
-				if(empty($this->session->flashdata('link'))){
-					redirect('home');
-				}else{
-					redirect($this->session->flashdata('link'));
-				}
+				redirect('home');
 			}else{
 				redirect('main/login');
 			}
@@ -146,15 +141,7 @@ class main extends CI_Controller {
 				'is_logged_in' => 1
 			);
 			$this->session->set_userdata($data);
-			//redirect('home');
-			if(empty($this->session->userdata('link'))){
-				redirect('home');
-			}else{
-				$link = $this->session->userdata('link');
-				$this->session->userdata('link',"");
-				redirect($link);
-			}
-			
+			redirect('home');
 		}else{
 			redirect('main/login');
 		}
@@ -197,19 +184,14 @@ class main extends CI_Controller {
 				);
 				$this->session->set_userdata($data);
 				//echo "pass";
-				//redirect('home');
-				if(empty($this->session->userdata('link'))){
-					redirect('home');
-				}else{
-					$link = $this->session->userdata('link');
-					$this->session->userdata('link',"");
-					redirect($link);
-				}
+				redirect('home');
+				
 				}else{
 					//echo "failed";
 					$this->form_validation->set_message('validate_credentials','Failed try again');
 					$this->load->view('register');
 				}
+
 			}
 			//echo "failed";
 			$this->form_validation->set_message('validate_credentials','Invalid credentials');

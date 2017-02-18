@@ -8,7 +8,7 @@
 					</div>
 					<div class="modal-header text-center">
 					<img class="img-circle" id="rating-server-icon" 
-					onerror="<?php echo $image_path = base_url()."wms/images/icons/dinner-2.png";?>" width="180" height="180"> 
+					onerror="onImgError(this)" width="180" height="180"> 
 						<p class="lead" id="rate-server-name"></p>
 						<small class="lv-small" id="rate-server-des"></small>
 					</div>
@@ -181,7 +181,7 @@
 							"<a class='lv-item' >"+
 							"<div class='media'>"+
 							"<div class='pull-left'>"+
-							"<img class='lv-img-sm' src='"+"<?php echo base_url();?>"+json[i].icon_path+"' >"+
+							"<img class='lv-img-sm' data-name='"+json[i].name+"' onerror='onImgError(this)' src='"+"<?php echo base_url();?>"+json[i].icon_path+"' >"+
                             "</div>"+
                             "<div class='media-body'>"+
                             "<div class='lv-title'>"+json[i].name+"</div>"+
@@ -219,7 +219,7 @@
 							"<a class='lv-item' >"+
 							"<div class='media'>"+
 							"<div class='pull-left'>"+
-							"<img class='lv-img-sm' src='"+"<?php echo base_url();?>"+json[i].icon_path+"' >"+
+							"<img class='lv-img-sm' data-name='"+json[i].name+"' onerror='onImgError(this)' src='"+"<?php echo base_url();?>"+json[i].icon_path+"' >"+
                             "</div>"+
                             "<div class='media-body'>"+
                             "<div class='lv-title'>"+json[i].name+"</div>"+
@@ -292,7 +292,7 @@
 							"<a class='lv-item' >"+
 							"<div class='media'>"+
 							"<div class='pull-left'>"+
-							"<img class='lv-img-sm' src='"+"<?php echo base_url();?>"+json[i].icon_path+"' >"+
+							"<img class='lv-img-sm' data-name='"+json[i].name+"' onerror='onImgError(this)' src='"+"<?php echo base_url();?>"+json[i].icon_path+"' >"+
                             "</div>"+
                             "<div class='media-body'>"+
                             "<div class='lv-title'>"+json[i].name+"</div>"+
@@ -332,7 +332,7 @@
 							"<a class='lv-item' >"+
 							"<div class='media'>"+
 							"<div class='pull-left'>"+
-							"<img class='lv-img-sm' src='"+"<?php echo base_url();?>"+json[i].icon_path+"' >"+
+							"<img class='lv-img-sm' data-name='"+json[i].name+"' onerror='onImgError(this)' src='"+"<?php echo base_url();?>"+json[i].icon_path+"' >"+
                             "</div>"+
                             "<div class='media-body'>"+
                             "<div class='lv-title'>"+json[i].name+"</div>"+
@@ -428,6 +428,7 @@
 		$('#rate-server-f form')[0].reset();
 		$('#rate-server-name').html('Rate: '+json.server_name);
 		$('#rate-server-des').html('Rate your server from '+json.restaurant_name+' on '+moment(json.reservation_time, 'YYYY-MM-DD h:mm:ss').format('MMMM Do YYYY, h:mm a'));
+		$('#rating-server-icon').data('name',json.server_name);
 		displayImage(json.server_icon_path);
 				
 		//Save button action #saveEvent
@@ -496,5 +497,10 @@
 		}
 		return false;
 	}
+	
+//On image error
+function onImgError(context){
+	$(context).initial(); 
+}
 
 </script>

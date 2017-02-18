@@ -18,3 +18,10 @@
 <script src="<?= base_url();?>material/js/jquery-2.1.1.min.js"></script>
 <script src="<?= base_url();?>material/js/bootstrap.min.js"></script>
 <script src="<?= base_url();?>material/vendors/fullcalendar/lib/moment.min.js"></script>
+
+<script type="text/javascript">
+//On image error
+function onImgError(context){
+	$(context).initial(); 
+}
+</script>

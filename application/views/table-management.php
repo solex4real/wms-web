@@ -146,6 +146,11 @@ src="<?= base_url();?>material/vendors/bootstrap-datetimepicker/bootstrap-dateti
 <script src="<?= base_url();?>wms/js/initial.js-master/initial.js"></script>
 
 <script src="<?= base_url();?>wms/js/jquery-ui-rotate.js"></script>
+<!-- Drag and drop events for tuch screen devices-->
+<script src="<?= base_url();?>wms/js/jquery-ui-touch-punch-master/jquery.ui.touch-punch.js"></script>
+<script src="<?= base_url();?>wms/js/jquery-ui-touch-punch-master/jquery.ui.touch-punch.min.js"></script>
+
+
 
 <link href="<?= base_url();?>wms/css/jquery.ui.rotatable.css" rel="stylesheet">
 <link href="<?= base_url();?>wms/css/css-percentage-circle-master/css/circle.css" rel="stylesheet">
@@ -163,7 +168,7 @@ var waiting_list_customers = []; //Id list for customers on waiting list
 var current_list_customers = []; //Id list for current/seated customers
 var assignment_list_servers = []; //Id list of server assignment for tables and customers
 var onhold_list_customers = []; //Id list for cust onhold
-var currentid = 1;	//Current table id
+var currentid = 0;	//Current table id
 var draggable_action = function(){
 	if(!action_performed){
 		var table_id = $(this).data("table-id");
@@ -353,6 +358,7 @@ function draggable_id_exist(id){
     $( "#draggable-diamond-two" ).draggable(draggable_params);
 	$( "#draggable-diamond" ).draggable(draggable_params);
 	$( "#draggable-circle-eight" ).draggable(draggable_params);
+	$( "#draggable-circle-one" ).draggable(draggable_params);
 	$( "#draggable-circle-two" ).draggable(draggable_params);
 	$( "#draggable-circle-three" ).draggable(draggable_params);
 	$( "#draggable-circle-four" ).draggable(draggable_params);
@@ -361,6 +367,7 @@ function draggable_id_exist(id){
 	$( "#draggable-circle-eight" ).draggable(draggable_params);
 	$( "#draggable-square-four" ).draggable(draggable_params);
 	$( "#draggable-square-two" ).draggable(draggable_params);
+	$( "#draggable-square-one" ).draggable(draggable_params);
 	$( "#draggable-square-mid-four" ).draggable(draggable_params);
 	$( "#draggable-square-eight" ).draggable(draggable_params);
 	$( "#draggable-rectangle-six" ).draggable(draggable_params);
@@ -447,6 +454,7 @@ function draggable_id_exist(id){
 			var top = ui.offset.top - $(this).offset().top;
 			if($(ui.helper).data("element-dropped")==false||$(ui.helper).data("element-dropped")==undefined){
 				currentid++;
+				//console.log(currentid);
 				var result = addTable(currentid,ui.draggable.attr("id"),
 				$(ui.helper).data("num-chairs"),top,left,"1",getRotationDegrees($(ui.helper)),$(this).data("section-id"));
 				$(ui.helper).data("table-id",currentid);
@@ -457,7 +465,7 @@ function draggable_id_exist(id){
 				$(ui.helper).attr("id","table-id-"+result.id);
 				//add draggable id to array
 				draggable_array_id.push(currentid);
-				console.log("Current: "+currentid);
+				//console.log("Current: "+currentid);
 				//Table info data display
 				var table_data = 
 				"<div class='row res-info-area' >"+
@@ -767,13 +775,16 @@ function updateTable(data){
 			var droppable_id = "";
 			var section_div = "";
 			var sectionContainer = document.getElementById("section-table-container");
+			//setup droppable containner
+			$('#section-table-container').find('.droppable-layout').each( function(){
+				$(this).droppable(droppable_params);
+			});
 			for (i = 0; i < len; i++) {
-				//Setup droppable
+				//get droppable
 				if(droppable_id != json[i].section_id){
 					droppable_id = json[i].section_id;
-					droppable = $("#droppable-"+droppable_id).droppable(droppable_params);
+					droppable = $("#droppable-"+droppable_id);
 				}
-			
 				rotationAngle = parseInt(json[i].orientation);
 				//console.log("Orientation: "+rotationAngle);
 				//Original height
@@ -1752,10 +1763,6 @@ function checkinAutocompleteAction(context){
 	table_list.selectpicker("refresh");
 }
 
-//On image error
-function onImgError(context){
-	$(context).initial(); 
-}
 
 //Get percentage on turn time
 function get_turn_time_percent(arrival_time,turn_time_val){

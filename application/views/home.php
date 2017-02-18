@@ -3,7 +3,7 @@
 if($user_data['is_logged_in']){
 	$this->load->view('header');
 }else{
-	$this->load->view('header-public');
+	$this->load->view('header-pub');
 }
 ?>
 
@@ -113,7 +113,7 @@ if($user_data['is_logged_in']){
 if($user_data['is_logged_in']){
 	$this->load->view('footer');
 }else{
-	$this->load->view('footer-public');
+	$this->load->view('footer-pub');
 }
 ?>
 	

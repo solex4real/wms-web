@@ -7,6 +7,7 @@ class Model_tables extends CI_Model {
 		$this->db->from('table_sections');
 		$this->db->join('tables' ,'table_sections.section_id = tables.section_id','left');
 		$this->db->where('table_sections.restaurant_id',$restaurant_id);
+		$this->db->where('tables.restaurant_id',$restaurant_id);
 		$query = $this->db->get();
 		return $query->result();
 	}
@@ -104,7 +105,8 @@ class Model_tables extends CI_Model {
 			'size_w'=>$size,
 			'orientation'=>$orientation,
 			'type'=>$type,
-			'section_id'=>$section
+			'section_id'=>$section,
+			'status'=>1
 		);
 		$this->db->insert ( 'tables', $data );
 		if ($this->db->affected_rows () > 0) {

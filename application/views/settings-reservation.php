@@ -44,7 +44,7 @@
 		</div>
 		</div>
 		
-	
+	<!--
 		<div class="card">
                         <div class="card-header">
                             <h2>Manage Restaurant Tables<small>Add and edit tables available by your restaurant.</small></h2>
@@ -69,7 +69,7 @@
                         </table>
 					
 			</div>
-	
+	-->
 		
 		
 									<!-- Edit Table -->

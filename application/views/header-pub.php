@@ -62,7 +62,7 @@
 				<ul class="top-menu">
 					
 					<li id="top-search"><a class="tm-search" href=""></a></li>
-					<li ><a class="pull-right f-700 p-10" href="<?= base_url()?>/main/login">SIGN IN</a></li>
+					<li ><a class="pull-right f-700 p-10" href="<?= base_url()?>main/login">SIGN IN</a></li>
 
 					<li class="dropdown"><a data-toggle="dropdown" class="tm-settings"
 						href=""></a>

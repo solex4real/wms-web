@@ -3,7 +3,7 @@
 if($user_data['is_logged_in']){
 	$this->load->view('header');
 }else{
-	$this->load->view('header-public');
+	$this->load->view('header-pub');
 }
 ?>
             <section id="content">
@@ -250,7 +250,7 @@ if($user_data['is_logged_in']){
 if($user_data['is_logged_in']){
 	$this->load->view('footer');
 }else{
-	$this->load->view('footer-public');
+	$this->load->view('footer-pub');
 }
 ?>
         
@@ -432,9 +432,6 @@ if($user_data['is_logged_in']){
 						if(!tableAvailable){
 							swal("No Tables Available","Please try other reservation dates for available table spaces.");
 						}else if(!isLoggedIn){
-							a = "<?php
-								$this->session->set_userdata('link',"restaurant/profile/".$data_restaurant->restaurant_username); 
-							?>";
 							window.location.replace("<?= base_url()?>"+"main/login");
 						}else{
 							swal("Server No Longer Available","Please try other reservation dates for available servers.");

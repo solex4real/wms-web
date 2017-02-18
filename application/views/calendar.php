@@ -202,6 +202,12 @@
 <script src="<?= base_url();?>material/js/functions.js"></script>
 <script src="<?= base_url();?>material/js/demo.js"></script>
 
+<!-- Drag and drop events for tuch screen devices-->
+<script src="<?= base_url();?>wms/js/jquery-ui-touch-punch-master/jquery.ui.touch-punch.js"></script>
+<script src="<?= base_url();?>wms/js/jquery-ui-touch-punch-master/jquery.ui.touch-punch.min.js"></script>
+
+
+
 <script type="text/javascript">
 				var token = '<?php echo $this->security->get_csrf_token_name(); ?>';
 				var hash = '<?php echo $this->security->get_csrf_hash(); ?>';
