@@ -165,6 +165,7 @@ defined ( 'BASEPATH' ) or exit ( 'No direct script access allowed' );
 		});
 		$('#username_r').keyup(function(){
 			var username = $('#username_r').val();
+			regex = /([^A-Za-z0-9_]+)/g;
 			if(username.length>2){
 				//console.log(email);
 				$.ajax({
@@ -173,8 +174,11 @@ defined ( 'BASEPATH' ) or exit ( 'No direct script access allowed' );
 						'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'},
 					type: 'POST',
 					success: function(json){
+						//console.log(regex.test(username));
 						if(json){
-							console.log(json);
+							//console.log(json);
+							document.getElementById('username-div').className += " has-error";
+						}else if(regex.test(username)){
 							document.getElementById('username-div').className += " has-error";
 						}else{
 							document.getElementById('username-div').className = " input-group m-b-20";
@@ -186,6 +190,15 @@ defined ( 'BASEPATH' ) or exit ( 'No direct script access allowed' );
 				});
 			}
 		});
+		$('#register').click(function(){
+			var username = $('#username_r').val();
+			regex = /([^A-Za-z0-9_]+)/g;
+			if(regex.test(username)){
+				return false
+			}
+			return true;
+		}
+		);
 	});
 	
 	</script>

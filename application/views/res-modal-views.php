@@ -87,6 +87,14 @@
 					</div>
 				</div>
 			</div>
+			<div class="row">
+				<div class="col-sm-12">
+					<label for="staus-select" class="p-t-10">Upcoming Reservations</label>
+					<div id="table-info-upcoming-res" class="row col-sm-12">
+						<p>None</p>
+					</div>
+				</div>
+			</div>
 			<div id="table-info-reservation" class="row">
 				<div class="col-sm-6">
 					<label for="staus-select" class="p-t-10">Customer Name</label>
@@ -137,37 +145,42 @@
 				<h4 class="modal-title">Check-In Customer</h4>
 			</div>
 			<div class="modal-body">
-				<form role="form" name="checkin-form" id="checkin-form" action="#" method="post" enctype="multipart/form-data">
+				<form role="form" name="checkin-form" id="checkin-form" >
 					<label for="staus-select" class="p-t-10">Check-In Type</label>
 					<div class="fg-line"> 
                         <select class="selectpicker" id="checkin-input-type">
-                            <option value="guest" id="checkin-input-guest">Guest</option>
-                            <option value="reserved" id="checkin-input-reserved">Reserved</option>
+							<option value="walk-ins" id="checkin-input-walk-ins">Walk Ins</option>
+                            <option value="guest" id="checkin-input-guest">Local Reservation</option>
+                            <option value="reserved" id="checkin-input-reserved">Online Reservation</option>
                         </select>
 					</div>
 					<div class="m-t-10 fg-line">
-						<input type="text" class="input-sm form-control" id="checkin-input-name" onkeyup="ajaxUserSearch();"
-							placeholder="John Doe"/>
+						<input type="text" class="input-sm form-control" autocomplete="off" id="checkin-input-name" onkeyup="ajaxUserSearch();"
+							placeholder="John Doe" required>
 					</div>
-					<div id="checkin-name-suggestion" class="row p-absolute col-sm-12">
+					<div id="checkin-name-suggestion" class="row p-absolute col-sm-12 z-index-10">
 						<div id="autoSuggestionsList-checkin" class="col-sm-12"></div>
 					</div>
-					<div class="m-t-10 fg-line">
-						<input type="text" class="input-sm form-control" id="checkin-input-reservation-id"
+					<div class="input-group m-t-10 ">
+						<input type="text" class="input-sm form-control"  id="checkin-input-reservation-id"
 							placeholder="ID" Disabled>
+						<span class="input-group-btn">
+							<button id="checkin-load-reservation-id" class="p-b-5 btn btn-secondary" type="button" disabled>Load</button>
+						</span>
 					</div>
 					<div class="m-t-10 row">
 						<div class="col-sm-6">
 							<select class="selectpicker" id="checkin-server-list" data-live-search="true">
 								<?php
 									foreach ($servers as $row):
-										echo "<option id='checkin-server-list-".$row->user_id."' value='".$row->user_id."'>".$row->name."</option>";
+										$disabled = ($row->status == 0) ? "disabled":"";
+										echo "<option id='checkin-server-list-".$row->user_id."' value='".$row->user_id."' ".$disabled.">".$row->name."</option>";
 									endforeach;
 								?>
 							</select>
 						</div>
 						<div class="col-sm-6">
-							<select class="selectpicker" id="checkin-table-list" data-live-search="true" multiple>
+							<select class="selectpicker" id="checkin-table-list" data-live-search="true" multiple required>
 								
 							</select>
 						</div>
@@ -175,13 +188,13 @@
 					<div class="row m-t-10">
 						<div class="col-sm-6">
 							<input type="number" class="input-sm form-control" id="checkin-input-customer-size"
-								placeholder="Customer Size; eg 2" />
+								placeholder="Customer Size; eg 2" required>
 						</div>
 						<div class="col-sm-6">
                             <div class="input-group form-group">
                                 <span class="input-group-addon"><i class="md md-access-time"></i></span>
                                 <div class="dtp-container dropdown fg-line">
-									<input type='text' id="checkin-input-turn-time" class="form-control" data-format="hh:mm:ss" data-toggle="dropdown" value="01:00:00" placeholder="Turn Time">
+									<input type='text' id="checkin-input-turn-time" class="form-control" data-format="hh:mm:ss" data-toggle="dropdown" value="01:00:00" placeholder="Turn Time" required>
 								</div>
 							</div>
                         </div>
@@ -221,7 +234,7 @@
 					<input type="hidden" id="getReservationId" /> 
 					<input type="hidden" id="getTableIds" /> 
 					<input type="hidden" id="getNotes" /> 
-				<form>
+				</form>
 			</div>
 			<div class="modal-footer">
 				<button id="save-checkin-data" type="button" class="btn btn-link">Save changes</button>
@@ -243,8 +256,8 @@
 					<label for="staus-select" class="p-t-10">Check-In Type</label>
 					<div class="fg-line"> 
                         <select class="selectpicker" id="status-input-type" disabled>
-                            <option value="guest" id="status-input-guest">Guest</option>
-                            <option value="reserved" id="status-input-reserved">Reserved</option>
+                            <option value="guest" id="status-input-guest">Local Reservation</option>
+                            <option value="reserved" id="status-input-reserved">Online Reservation</option>
                         </select>
 					</div>
 					<div class="m-t-10 fg-line">
@@ -260,13 +273,14 @@
 							<select class="selectpicker" id="status-server-list" data-live-search="true">
 								<?php
 									foreach ($servers as $row):
-										echo "<option id='status-server-list-".$row->user_id."' value='".$row->user_id."'>".$row->name."</option>";
+										$disabled = ($row->status == 0) ? "disabled":"";
+										echo "<option id='status-server-list-".$row->user_id."' value='".$row->user_id."' ".$disabled.">".$row->name."</option>";
 									endforeach;
 								?>
 							</select>
 						</div>
 						<div class="col-sm-6">
-							<select class="selectpicker" id="status-table-list" data-live-search="true" multiple>
+							<select class="selectpicker" id="status-table-list" data-live-search="true" multiple required>
 								
 							</select>
 						</div>
@@ -315,6 +329,7 @@
 					<div class="fg-line"> 
                         <select class="selectpicker" id="status-input-status">
 							<option value="2" id="status-input-checkedin">Checked In</option>
+							<option value="3" id="status-input-completed">Completed</option>
                             <option value="1" id="status-input-waiting">Waiting</option>
                             <option value="0" id="status-input-onhold">On Hold</option>
                         </select>
@@ -322,7 +337,7 @@
 					<input type="hidden" id="status-getReservationId" /> 
 					<input type="hidden" id="status-getTableIds" /> 
 					<input type="hidden" id="status-getNotes" /> 
-				<form>
+				</form>
 			</div>
 			<div class="modal-footer">
 				<button id="save-status-data" type="button" class="btn btn-link">Save changes</button>

@@ -4,7 +4,7 @@
 			
 		<div class="card">
 		<div class="card-header">
-            <h2>Manage Reservation <small>Manage server limit and table size</small></h2>
+            <h2>Manage Server Reservations <small>Manage server limit for guest size</small></h2>
         </div>
 		<div class="card-body card-padding">
 		<div class="row">
@@ -29,7 +29,7 @@
             </div>
 			
 			<div class="col-sm-3 m-b-25">
-                <p class="f-500 m-b-15 c-black">Table Limit</p>
+                <p class="f-500 m-b-15 c-black">Guest Limit</p>
                 <input type="number" class="form-control" id="server-limit" placeholder="Enter Table Limit" value="<?php echo "4";?>">         
             </div>
 			

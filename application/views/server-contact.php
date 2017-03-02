@@ -92,7 +92,7 @@
 									echo "<div class='col-md-2 col-sm-4 col-xs-6'>";
 									echo "<div class='c-item'>";
 									echo "<a href='' class='ci-avatar'>";
-									echo "<img src=".base_url().$row->icon_path." alt="."".">";
+									echo "<img class='server-icon' onerror='onImgError(this);' data-name='".$row->name."' src=".base_url().$row->icon_path." alt="."".">";
 									echo "</a>";
 									echo "<div class='c-info'>";
 									echo "<strong>".$row->name."</strong>";
@@ -191,6 +191,16 @@
         
 		
 		<script type="text/javascript">
+		//Strech image of server to fit div container
+		$(function() {
+			var width = $('img.server-icon').css('width');
+			$('img.server-icon').css({'height':width});
+			$(window).on('resize', function(){
+				var width = $('img.server-icon').css('width');
+				$('img.server-icon').css({'height':width});
+			});
+		});
+		
 		
         function ajaxSearchServer() {
             var input_data = $('#server-search').val();
@@ -207,12 +217,22 @@
                     type: "POST",
                     url: "<?php echo base_url(); ?>servers/autocomplete/",
                     data: post_data,
-                    success: function(data) {
-                        // return success
-                        if (data.length > 0) {
+                    success: function(json) {
+						//console.log(json);
+						div = "";
+						len = 0;
+                        // parse json
+						json = JSON.parse(json);
+						if(json != null){
+							len = json.length;
+							for(i = 0;i < len;i++){
+								div += "<div><a href='"+'<?= base_url();?>'+"servers/openprofile/" +json[i].username+" ' class='list-group-item'>"+json[i].name+"</a></div>";
+							}
+						}
+                        if (len > 0) {
                             $('#suggestions-server').show();
                             $('#autoSuggestionsList-server').addClass('auto-list');
-                            $('#autoSuggestionsList-server').html(data);
+                            $('#autoSuggestionsList-server').html(div);
                         }
                     }
                 });

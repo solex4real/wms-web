@@ -60,12 +60,12 @@
 					$view_icon_ser = array('md md-home','md md-format-underline','d md-today','md md-settings');
 										
 					//$view_name_res = array("Home","Orders","Reservations","Products","Servers","Customers","Calendar","Settings");
-					$view_name_res = array("Home","Reservations","Table Management","Servers","Customers","Calendar","Settings");
+					$view_name_res = array("Dashboard","Reservations","Table Management","Servers","Customers","Calendar","Settings");
 					//$view_ref_res = array("home","orders","reservations","products","servers","customers","calendar","settings");
 					$view_ref_res = array("home","reservations","table_management","servers","customers","calendar","settings");
 					//$view_icon_res = array('md md-home','md md-format-underline','md md-local-restaurant',
 					//'md md-loyalty','md md-person','md md-people','md md-today','md md-settings');
-					$view_icon_res = array('md md-home','md md-local-restaurant','md md-format-underline',
+					$view_icon_res = array('md md-dashboard','md md-local-restaurant','md md-format-underline',
 					'md md-person','md md-people','md md-today','md md-settings');
 					
 					if($user_data['type']==='user'){
@@ -80,7 +80,7 @@
 									echo "</ul>";
 									echo "</li>";	
 								}else{
-									echo "<li ".check_active($view_name_ser[$i],$view)." >";
+									echo "<li class='".check_active($view_name_ser[$i],$view)."' >";
 									echo "<a href='".base_url().$view_ref_ser[$i]."'>";
 									echo "<i class='".$view_icon_ser[$i]."'>";
 									echo "</i>".$view_name_ser[$i]."</a></li>";
@@ -88,7 +88,7 @@
 							}
 						}else{
 							for($i=0; $i<count($view_name); $i++){
-								echo "<li ".check_active($view_name[$i],$view)." >";
+								echo "<li class='".check_active($view_name[$i],$view)."' >";
 								echo "<a href='".base_url().$view_ref[$i]."'>";
 								echo "<i class='".$view_icon[$i]."'>";
 								echo "</i>".$view_name[$i]."</a></li>";
@@ -97,17 +97,27 @@
 						
 					}elseif($user_data['type']==='restaurant') {
 						for($i=0; $i<count($view_name_res); $i++){
-							echo "<li ".check_active($view_name_res[$i],$view)." >";
-							echo "<a href='".base_url().$view_ref_res[$i]."'>";
-							echo "<i class='".$view_icon_res[$i]."'>";
-							echo "</i>".$view_name_res[$i]."</a></li>";
+							if($view_name_res[$i]==="Reservations"){
+								echo "<li class='sub-menu ".check_active($view_name_res[$i],$view)."'>";
+								echo "<a ><i class='md md-local-restaurant'></i>Reservations</a>";
+								echo "<ul>";
+                                echo "<li ><a href='".base_url()."reservations"."'>Online</a></li>";
+                                echo "<li class='active'><a href='".base_url()."reservation_guest"."'>Guest</a></li>";
+								echo "</ul>";
+								echo "</li>";	
+							}else{
+								echo "<li class='".check_active($view_name_res[$i],$view)."' >";
+								echo "<a href='".base_url().$view_ref_res[$i]."'>";
+								echo "<i class='".$view_icon_res[$i]."'>";
+								echo "</i>".$view_name_res[$i]."</a></li>";
+							}
 						}
 					}
 					
 					
 					function check_active($current_view,$view){
 						if($current_view===$view){
-							return "class=active";
+							return "active";
 						}else{
 							return "";
 						}

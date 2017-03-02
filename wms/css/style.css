@@ -11,6 +11,20 @@
 #delete-table{
 	margin-bottom: -105px;
 }
+/* Z index preset for checkin name suggestions*/
+#checkin-name-suggestion{
+	z-index:100;
+}
+/*div img containers for restaurant list on home page*/
+.thumbnail img{
+	max-width: 100%;
+	min-width: 100%;
+}
+
+/*a img containers for server icon on server profile page*/
+img .server-icon{
+	width: 100%;
+}
 
 /*Preloaders */
 .page-loader {  

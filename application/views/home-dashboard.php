@@ -120,7 +120,7 @@
 								echo "<a class='lv-item' href='". base_url() ."servers/openprofile/".$row->username."'>";
 								echo "<div class='media'>";
 								echo "<div class='pull-left p-relative'>";
-								echo "<img class='lv-img-sm' src=".base_url().$row->icon_path." onerror=".base_url()."material/img/profile-pics/2.jpg".">";
+								echo "<img class='lv-img-sm' src=".base_url().$row->icon_path." onerror='onImgError(this);' data-name='".$row->name."' >";
 								echo "<i class='chat-status-online'></i>";
 								echo "</div>";
 								echo "<div class='media-body'>";
@@ -498,7 +498,7 @@ $(document).ready(function(){
                             return "<button type=\"button\" class=\"btn "+status_color[row.status]+" col-lg-8\" data-row-id=\"" + row.reservation_id + "\">"+status_text[row.status]+"</button>" ;
                         },
 						"icon": function(column, row) {
-                            return "<img class='img-circle' src='"+"<?php echo base_url();?>"+row.icon_path+"' width='30' height='30'>" ;
+                            return "<img class='img-circle' onerror='onImgError(this);' data-name='"+row.user_name+"' src='"+"<?php echo base_url();?>"+row.icon_path+"2"+"' width='30' height='30'>" ;
                         }
                 }
 				}).on("loaded.rs.jquery.bootgrid", function(e, rows)

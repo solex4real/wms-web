@@ -55,6 +55,7 @@ class Reservations extends CI_Controller {
 	public function test(){
 		$this->load->model('model_reservations');
 		$user_data = $this->session->userdata;
+		/*
 		$tables = array("4","8");
 		$table_amount = array("9","14");
 		$customer_size_defined = 12;
@@ -63,13 +64,16 @@ class Reservations extends CI_Controller {
 		"79","76","74","70","69","78");
 		$num_chairs = array("4","4","4","4","4","4","4","4","4",
 		"8","8","8","8","8","8","8","8","8","8","8","8","8","8");
-		
 		$query = $this->model_reservations->get_assigned_tables($tables,$table_amount,
 		$customer_size_defined,$table_ids,$num_chairs);
+		*/
+		$query = $this->model_reservations->get_available_tables(2000000,"2017-02-21 17:00:00");
 		//echo count(array())==0;
 		//var_dump($query);
 		print_r($query);
 	}
+	
+	
 	
 	public function name_autocomplete() {
 		$user_data = $this->session->userdata;
@@ -86,7 +90,9 @@ class Reservations extends CI_Controller {
 		data-id='".$row->id."'
 		data-name='".$row->name."'
 		data-notes='".$row->notes."'
-		onclick='checkinAutocompleteAction(this);'
+		data-type='reserved'
+		href='#'
+		onclick='checkinLoad(\"reserved\",\"".$row->reservation_id ."\")'
 		class='list-group-item '>".$row->name ."</a></div>";
 		endforeach;
 	}
@@ -96,7 +102,7 @@ class Reservations extends CI_Controller {
 		$user_data = $this->session->userdata;
 		$query = $this->model_reservations->get_current_reservations($user_data['id']);
 		echo json_encode($query);
-		//print($query);
+		//var_dump(date('Y-m-d H:s:m'));
 	}
 	
 	public function get_inline_reservations(){
@@ -123,9 +129,18 @@ class Reservations extends CI_Controller {
 	
 	public function get_available_tables(){
 		$this->load->model('model_reservations');
-		$restaurant_id = $this->input->post('restaurant_id');
+		$user_data = $this->session->userdata;
+		if(!empty($user_data['type'])){
+			if($user_data['type']=='restaurant'){
+				$restaurant_id = $user_data['id'];
+			}else{
+				$restaurant_id = $this->input->post('restaurant_id');
+			}
+		}else{
+			$restaurant_id = $this->input->post('restaurant_id');
+		}
 		$dateTime = $this->input->post('dateTime');
-		$group_size = $this->input->post('group_size');
+		//$group_size = $this->input->post('group_size');
 		$query = $this->model_reservations->get_available_tables($restaurant_id,$dateTime);
 		echo json_encode($query);
 	}
@@ -156,6 +171,14 @@ class Reservations extends CI_Controller {
 		$this->load->model('Model_reservations');
 		$data = $this->Model_reservations->get_reservations($restaurant_id,$current_page,$search_data,$sort->reservation_id);	
 		//print_r(json_decode(json_encode($data['rows'])));
+		echo json_encode($data);
+	}
+	
+	public function get_reservation(){
+		$user_data = $this->session->userdata;
+		$this->load->model('Model_reservations');
+		$reservation_id = $this->input->post('reservation_id');
+		$data = $this->Model_reservations->get_reservation($user_data['id'],$reservation_id);
 		echo json_encode($data);
 	}
 	

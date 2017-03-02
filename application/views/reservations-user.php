@@ -125,8 +125,7 @@
             <!-- Data Table -->
         <script type="text/javascript">
 			var user_id = "<?php echo $id;?>";
-			var reservations_val = '<?php echo json_encode($reservations['rows']);?>';
-			var reservations = JSON.parse(reservations_val);
+			var reservations = [];
 			var current_page = 1;
 			var search_val = "";
 			
@@ -152,6 +151,10 @@
 					},
 					//data: {'restaurant_id':"<?php echo $id;?>",'last_id':0},
 					url: "<?php echo base_url();?>"+"Reservations/get_user_reservations",
+					responseHandler: function (response) { 
+						reservations = response['rows'];
+						//console.log(response['restaurant_id']);
+					return response; },
 				formatters: {
                         "commands": function(column, row) {
                             return "<button type=\"button\" class=\"btn btn-icon command-edit\" data-row-id=\"" + row.reservation_id + "\" \"><span class=\"md  md-receipt\"></span></button> " + 

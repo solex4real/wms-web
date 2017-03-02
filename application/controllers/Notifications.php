@@ -29,6 +29,15 @@ class Notifications extends CI_Controller {
 		}
 	}
 	
+	//Test function
+	public function test(){
+		/*
+		$this->load->model('model_notifications');
+		$data = $this->model_notifications->email_notification("server-request",2000000,2);
+		var_dump($data);
+		*/
+	}
+	
 	//Restaurant reservation notification
 	public function get_restaurant_notifications(){
 		$user_data = $this->session->userdata;
@@ -93,6 +102,9 @@ class Notifications extends CI_Controller {
 		$message = $this->input->post('message');
 		$this->load->model('model_notifications');
 		$result = $this->model_notifications->add_notification($user_id,$server_id,$restaurant_id,$reference_id,$user,$type,$message);
+		if($type == "server-request"){
+			$data = $this->model_notifications->email_notification($type,$restaurant_id,$server_id);
+		}
 		echo $result;
 	}
 	
@@ -112,13 +124,6 @@ class Notifications extends CI_Controller {
 		$this->load->model('model_notifications');
 		$result = $this->model_notifications->remove_notification($id);
 		echo $result;
-	}
-	
-	public function test(){
-		//$this->load->model('model_notifications');
-		//$result = $this->model_notifications->get_update_request("2000000");
-		$result = md5('500Emmanuel');
-		print_r($result);
 	}
 	
 }

@@ -76,13 +76,13 @@ if($user_data['is_logged_in']){
 		<?php
 		foreach ( $data as $row ) {
 		echo "<div class='col-sm-4'>";
-		echo "<div class='thumbnail' height='400' width='700'>";
+		echo "<div class='thumbnail' >";
 		
 		$banner_path = $row->banner_path;
 		if(empty($row->banner_path)){
 			$banner_path = "wms/images/icons/meal-2.png";
 		}
-		echo "<img src=".base_url().$banner_path." alt=".""." style='height: 100%; width: 100%; object-fit: contain' >";
+		echo "<img src=".base_url().$banner_path." class='scale' >";
 		echo "<div class='caption'>";
 			echo "<h4>".$row->name."</h4>";
 			echo "<p>".$row->description."</p>";
@@ -118,6 +118,7 @@ if($user_data['is_logged_in']){
 ?>
 	
 <!-- Vendor CSS -->
+<!--
 <link href="<?= base_url();?>material/vendors/animate-css/animate.min.css" rel="stylesheet">
 <link href="<?= base_url();?>material/vendors/noUiSlider/jquery.nouislider.min.css" rel="stylesheet">
 <link href="<?= base_url();?>material/vendors/farbtastic/farbtastic.css" rel="stylesheet">
@@ -125,6 +126,7 @@ if($user_data['is_logged_in']){
 <link href="<?= base_url();?>material/vendors/sweet-alert/sweet-alert.min.css" rel="stylesheet">
 <link href="<?= base_url();?>material/vendors/material-icons/material-design-iconic-font.min.css" rel="stylesheet">
 <link href="<?= base_url();?>material/vendors/socicon/socicon.min.css" rel="stylesheet">
+-->
 
 <script src="<?= base_url();?>material/vendors/sparklines/jquery.sparkline.min.js"></script>
 <script
@@ -139,12 +141,23 @@ if($user_data['is_logged_in']){
 <script
 	src="<?= base_url();?>material/vendors/sweet-alert/sweet-alert.min.js"></script>
 
-
 <script src="<?= base_url();?>material/js/charts.js"></script>
 <script src="<?= base_url();?>material/js/functions.js"></script>
 <script src="<?= base_url();?>material/js/demo.js"></script>
 
 
+<script type="text/javascript">
+$(function() {
+	//Strech image of restaurant to fit div container
+	var width = $('img.scale').css('width');
+	$('img.scale').css({'height':Math.round(parseFloat(width)*0.57)});
+	$(window).on('resize', function(){
+		var width = $('img.scale').css('width');
+		$('img.scale').css({'height':Math.round(parseFloat(width)*0.57)});
+	});
+});
+
+</script>
 
 
 </body>

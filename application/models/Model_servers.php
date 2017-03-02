@@ -27,7 +27,8 @@ class Model_servers extends CI_Model {
 		$this->db->join('users','servers.user_id = users.id', 'inner');
 		$this->db->like('users.name', $search_data);
 		$this->db->limit($limit);
-		return $this->db->get();
+		$query  = $this->db->get();
+		return $query->result();
 	}
 	
 	public function get_servers($restaurant_id){

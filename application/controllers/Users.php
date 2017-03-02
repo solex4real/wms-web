@@ -43,7 +43,7 @@ class Users extends CI_Controller {
 					'upload'=> '0'
 			);
 			$this->load->view('settings-user',$data);
-			//echo print_r($this->session->userdata);
+			//print_r($this->session->userdata);
 		}else{
 			//echo "Failed";
 			redirect('/main/login');

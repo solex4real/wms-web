@@ -21,13 +21,50 @@ class Reservation_guest extends CI_Controller {
 
 	public function index()
 	{
-		redirect('/table_management');
+		if($this->session->userdata('type')==="restaurant"){
+			$user_data = $this->session->userdata;
+			$this->load->model('Model_servers');
+			$this->load->model('Model_tables');
+			$servers = $this->Model_servers->get_servers($user_data['id']);
+			$tables = json_encode($this->Model_tables->get_tables($user_data['id']));
+			$data = array(
+					'user_data' => $user_data,
+					'name' => $user_data['name'],
+					'id' => $user_data['id'],
+					'view' => 'Reservations',
+					'servers'=>$servers,
+					'tables'=>$tables,
+					'icon_path'=>$user_data['icon_path']
+			);
+			$this->load->view('reservations-guest-restaurant',$data);
+		}else{
+			redirect('home');
+		}
 	}
 	
 	public function get_guests(){
 		$user_data = $this->session->userdata;
 		$this->load->model('Model_guest');
 		$data = $this->Model_guest->get_guest($user_data['id']);
+		echo json_encode($data);
+	}
+	
+	public function get_guest(){
+		$user_data = $this->session->userdata;
+		$this->load->model('Model_guest');
+		$reservation_id = $this->input->post('reservation_id');
+		$data = $this->Model_guest->get_guest($user_data['id'],$reservation_id);
+		echo json_encode($data);
+	}
+	
+	public function get_reservations(){
+		$user_data = $this->session->userdata;
+		$current_page = $this->input->post('current');
+		$search_data = $this->input->post('searchPhrase');
+		$sort = json_encode($this->input->post('sort'));
+		$sort = json_decode($sort);
+		$this->load->model('Model_guest');
+		$data = $this->Model_guest->get_reservations($user_data['id'],$current_page,$search_data,$sort->reservation_id);	
 		echo json_encode($data);
 	}
 	
@@ -68,9 +105,8 @@ class Reservation_guest extends CI_Controller {
 		$user_data = $this->session->userdata;
 		$this->load->model('Model_guest');
 		$reservation_guest_id = $this->input->post('reservation_guest_id');
-		$data = json_decode($data);
 		$result = $this->Model_guest->remove_reservation($user_data['id'],$reservation_guest_id);
-		echo json_encode($result);
+		echo $result;
 	}
 	
 	public function change_tables(){
@@ -90,6 +126,26 @@ class Reservation_guest extends CI_Controller {
 		echo json_encode($result);
 	}
 	
+	public function name_autocomplete() {
+		$user_data = $this->session->userdata;
+		$search_data = $this->input->post('search_data');
+		$this->load->model('Model_guest');
+		$data = $this->Model_guest->get_name_autocomplete($user_data['id'],$search_data);
+		foreach ($data as $row):
+		echo "<div><a data-reservation-id='" . $row->reservation_guest_id ."' 
+		data-reservation-customer-size='".$row->customer_size."'
+		data-turn-time='".$row->turn_time."'
+		data-table-ids='".$row->table_ids."'
+		data-server-id='".$row->server_id."'
+		data-email='".$row->email."'
+		data-id='".$row->id."'
+		data-name='".$row->guest_name."'
+		data-notes='".$row->notes."'
+		data-type='guest'
+		onclick='checkinLoad(\"guest\",\"".$row->reservation_guest_id ."\")'
+		class='list-group-item '>".$row->guest_name."</a></div>";
+		endforeach;
+	}
 	
 	
 }

@@ -229,6 +229,7 @@ class main extends CI_Controller {
 	public function check_username(){
 		$this->load->model('model_users');
 		$username = $this->input->post ( 'username' );
+
 		if($this->model_users->username_exist($username)){
 			$this->form_validation->set_message('check_username','username already exist');
 			return false;

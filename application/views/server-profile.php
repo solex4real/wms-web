@@ -17,7 +17,7 @@
                             <div class="pmo-pic">
                                 <div class="p-relative">
                                     <a href="">
-                                        <img src="<?= base_url().$data_server->icon_path;?>" alt=""> 
+                                        <img class="server-icon" onerror='onImgError(this)' data-name='<?= $data_server->name;?>' src="<?= base_url().$data_server->icon_path;?>" alt=""> 
                                     </a>
                                     
                                     <div class="dropdown pmop-message">
@@ -323,6 +323,15 @@
 		var total = parseInt("<?= $rating['total'];?>");
 		
 		$(document).ready(function() {
+			//Strech image to fit container
+			//Strech image of server to fit div container
+			var width = $('img.server-icon').css('width');
+			$('img.server-icon').css({'height':width});
+			$(window).on('resize', function(){
+				var width = $('img.server-icon').css('width');
+				$('img.server-icon').css({'height':width});
+			});
+			
 			$('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
 				$('#calendar').fullCalendar('render');
 			});

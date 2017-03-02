@@ -51,7 +51,7 @@ if($user_data['is_logged_in']){
                                 
                                 <div class="pmo-stat">
                                     <h2 class="m-0 c-white">Feedback</h2>
-                                    Let us a know what you think!.
+                                    Let us know what you think!.
                                 </div>
                             </div>
                             
@@ -69,11 +69,13 @@ if($user_data['is_logged_in']){
 										echo date('h:i A', strtotime($data_restaurant->start_time))." - ".date('h:i A', strtotime($data_restaurant->end_time));
 										
 									?></li>
-									<li><i class="md md-language"></i> <?php 
-										if(!empty($data_restaurant->url)||$data_restaurant->url==""){
+									 <?php 
+										if(empty($data_restaurant->url)||$data_restaurant->url==""){
+											echo "<li><i class='md md-language' ></i>";
 											echo "not available";
 										}else{
-											echo $data_restaurant->url;
+											echo "<li><i class='md md-language'  ></i>";
+											echo "<a href=\"http://".$data_restaurant->url."\">".$data_restaurant->url."</a>";
 										}
 									?></li>
                                     <li>
@@ -142,7 +144,7 @@ if($user_data['is_logged_in']){
 						  
 									<div role="tabpanel" class="tab-pane active" id="reservation">
 									<div class="row">
-										<div class="col-sm-3 m-b-25">
+										<div class="col-sm-4">
 											<select id="group-size" class="selectpicker" data-live-search="true">
 												<option value="1">1 Person</option>
 												<option value="2">2 People</option>
@@ -157,7 +159,7 @@ if($user_data['is_logged_in']){
                                     <div class="input-group form-group">
                                         <span class="input-group-addon"><i class="md md-event"></i></span>
                                             <div class="dtp-container dropdown fg-line">
-                                            <input type='text' id="date" class="form-control date-picker" value="<?php echo date("d/m/Y");?>" data-toggle="dropdown" placeholder="Select Date">
+                                            <input type='text' id="date" class="form-control date-picker" data-date-format='MM-DD-YYYY' value="<?php echo date("m-d-Y");?>" data-toggle="dropdown" placeholder="Select Date">
                                         </div>
                                     </div>
                                 </div>
@@ -174,7 +176,7 @@ if($user_data['is_logged_in']){
 									</div>
 								<div class="row">
 								
-								<p class="c-black f-500 m-b-5">Available Servers</p>
+								<p class="c-black f-500 m-b-5 m-t-25">Available Servers</p>
 								
 								
 								<div id="available-servers"class="contacts clearfix row">
@@ -183,7 +185,7 @@ if($user_data['is_logged_in']){
 									echo "<div class='col-md-2 col-sm-4 col-xs-6'>";
 									echo "<div class='c-item'>";
 									echo "<a href='' class='ci-avatar'>";
-									echo "<img src=".base_url().$row->icon_path." alt="."".">";
+									echo "<img class='server-icon' onerror='onImgError(this);' data-name='".$row->name."' src=".base_url().$row->icon_path." alt="."".">";
 									echo "</a>";
 									echo "<div class='c-info'>";
 									echo "<strong>".$row->name."</strong>";
@@ -209,23 +211,26 @@ if($user_data['is_logged_in']){
 							<div class="contacts clearfix row">
 							<?php
 								foreach ( $servers as $row ) {
-									echo "<div class='col-md-2 col-sm-4 col-xs-6'>";
-									echo "<div class='c-item'>";
-									echo "<a href='' class='ci-avatar'>";
-									echo "<img src=".base_url().$row->icon_path." alt="."".">";
-									echo "</a>";
-									echo "<div class='c-info'>";
-									echo "<strong>".$row->name."</strong>";
-									echo "<strong>"."Rating: ".number_format($row->rating_avg , 1)."</strong>";
-									echo "</div>";
-									echo "<div class='c-footer'>";
-									echo "<button class='waves-effect' onclick=location.href='".base_url()."servers/openprofile/".$row->username."' >
-									<a class='zmdi zmdi-person-add' >
-									</a> Select</button>";
+									if($row->status==1){
+										echo "<div class='col-md-2 col-sm-4 col-xs-6'>";
+										echo "<div class='c-item'>";
+										echo "<a href='' class='ci-avatar'>";
+										echo "<img class='server-icon' onerror='onImgError(this);' data-name='".$row->name."' src=".base_url().$row->icon_path." alt="."".">";
+										echo "</a>";
+										echo "<div class='c-info'>";
+										echo "<strong>".$row->name."</strong>";
+										echo "<strong>"."Rating: ".number_format($row->rating_avg , 1)."</strong>";
+										echo "</div>";
+										echo "<div class='c-footer'>";
+										echo "<button class='waves-effect' onclick=location.href='".base_url()."servers/openprofile/".$row->username."' >
+										<a class='zmdi zmdi-person-add' >
+										</a> Select</button>";
 						
-									echo "</div>";
-									echo "</div>";
-									echo "</div>";
+										echo "</div>";
+										echo "</div>";
+										echo "</div>";
+									}
+									
 								}
 							?>
 							
@@ -287,6 +292,15 @@ if($user_data['is_logged_in']){
 		<script type="text/javascript"> 
 		
 		$(document).ready(function() {
+			//Strech image to fit container
+			//Strech image of server to fit div container
+			var width = $('img.server-icon').css('width');
+			$('img.server-icon').css({'height':width});
+			$(window).on('resize', function(){
+				var width = $('img.server-icon').css('width');
+				$('img.server-icon').css({'height':width});
+			});
+			
 			$('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
 				
 			});
@@ -309,6 +323,7 @@ if($user_data['is_logged_in']){
 								type: 'POST' ,
 								ContentType: 'application/json',
 								success: function (json) {
+									console.log(json);
 								if(json===null){
 									//alert(json);
 									
@@ -332,7 +347,7 @@ if($user_data['is_logged_in']){
 										"<div class='col-md-2 col-sm-4 col-xs-6'>"+
 										"<div class='c-item'>"+
 										"<a href='' class='ci-avatar'>"+
-										"<img src="+"<?php echo base_url(); ?>"+json[i].icon_path+">"+
+										"<img src="+"<?php echo base_url(); ?>"+json[i].icon_path+"  onerror='onImgError(this);' data-name='"+json[i].name+"' >"+
 										"</a>"+
 										"<div class='c-info'>"+
 										"<strong>"+json[i].name+"</strong>"+
@@ -352,6 +367,10 @@ if($user_data['is_logged_in']){
 									
 								}
 								
+							},
+							error: function (request, ajaxOptions, thrownError) {
+								console.log(request.responseText);
+			
 							}
 							});
 							
@@ -464,7 +483,7 @@ if($user_data['is_logged_in']){
 								if(json.success){
 									$('#confirm-reservation').modal('hide');
 									//Success Message
-									swal("Reserved!", "Check your email for detials of reservation", "success");
+									swal("Reserved!", "Check your email for details of reservation", "success");
 									send_confirmation_email(json.reservation_id);
 								}else{
 									$('#confirm-reservation').modal('hide');
@@ -596,7 +615,7 @@ if($user_data['is_logged_in']){
 				
 				//Date Time Format
 				function formatDate(date,time) {
-							date = date.split('/');
+							date = date.split('-');
 							time = time.split(' ');
 							var hour = 0;
 							time_val = time[0].split(':');
@@ -609,7 +628,7 @@ if($user_data['is_logged_in']){
 									break;
 							}
 							
-							var str_date = date[2].concat("-",date[1],"-",date[0]);
+							var str_date = date[2].concat("-",date[0],"-",date[1]);
 							var hour_val = +time_val[0]; 
 							hour = hour + hour_val;
 							var str_time = " "+hour+":"+time_val[1]+":00";

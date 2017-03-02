@@ -158,8 +158,7 @@
             <!-- Data Table -->
         <script type="text/javascript">
 			var user_id = "<?php echo $id;?>";
-			//var reservations_val = '<?php echo json_encode($reservations['rows']);?>';
-			//var reservations = JSON.parse(reservations_val);
+			var reservations = [];
 			var current_page = 1;
 			var search_val = "";
 			var test_data = {};
@@ -202,7 +201,7 @@
                             return "<button type=\"button\" class=\"btn "+status_color[row.status]+" col-lg-8\" data-row-id=\"" + row.reservation_id + "\">"+status_text[row.status]+"</button>" ;
                         },
 						"server_name": function(column, row) {
-                            return "<p class='m-5'><img class='img-circle' src='"+"<?php echo base_url();?>"+row.icon_path+"' width='30' height='30'>"+"   "+row.server_name+"</p>" ;
+                            return "<p class='m-5'><img data-name='"+row.server_name+"' onerror='onImgError(this)' class='img-circle' src='"+"<?php echo base_url();?>"+row.icon_path+"' width='30' height='30'>"+"   "+row.server_name+"</p>" ;
                         }
                 }
 				}).on("loaded.rs.jquery.bootgrid", function(e, rows)

@@ -5,7 +5,7 @@
                 <div class="container">
                    <div class="card">
                         <div class="card-header">
-                            <h2>Customers <small>Recent customers from reservations.</small></h2>
+                            <h2>Customers <small>Recent online customers from reservations.</small></h2>
                         </div>
                         
                         <div class="table-responsive">
@@ -73,7 +73,7 @@
 					url: "<?php echo base_url();?>"+"Customers/get_customers",
 					formatters: {
 						"icon": function(column, row) {
-                            return "<img class='img-circle' src='"+"<?php echo base_url();?>"+row.icon_path+"' width='30' height='30'>" ;
+                            return "<img class='img-circle' onerror='onImgError(this);' data-name='"+row.name+"' src='"+"<?php echo base_url();?>"+row.icon_path+"' width='30' height='30'>" ;
                         }
 					}
 					

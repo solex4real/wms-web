@@ -153,7 +153,9 @@
 <script src="<?= base_url();?>material/js/jquery-2.1.1.min.js"></script>
 <script src="<?= base_url();?>material/js/bootstrap.min.js"></script>
 <script src="<?= base_url();?>material/vendors/fullcalendar/lib/moment.min.js"></script>
-
+<script src="<?= base_url();?>wms/js/validator/jquery.validate.min.js"></script>
+<script src="<?= base_url();?>wms/js/validator/additional-methods.min.js"></script>
+<script src="<?= base_url();?>wms/js/initial.js-master/initial.js"></script>
 <script type="text/javascript">
 	//Setup Notification Dialogs
 	id = "<?php echo $user_data['id'];?>";
@@ -208,7 +210,7 @@
 					data: {'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'},
 					success: function (json){
 						//Parse Json data
-						console.log(json);
+						//console.log(json);
 						json = JSON.parse(json);
 						var len = json.length;
 						//var dateFormat = require('dateformat');
@@ -386,8 +388,14 @@
 			ContentType: 'application/json',
 			success: function (json) {
 				if(json){
-					document.getElementById('accept-request').parentNode.parentNode.parentNode.parentNode.parentNode.style.display='none';
+					node = document.getElementById('accept-request').parentNode.parentNode.parentNode.parentNode.parentNode;//.style.display='none';
+					document.getElementById('notification-list').removeChild(node);
 					swal("Added!", "Restaurant has been added", "success");
+				}else{
+					var node = document.getElementById('accept-request').parentNode.parentNode.parentNode.parentNode.parentNode;//.style.display='none';
+					//console.log(node);
+					var parentNode = document.getElementById('notification-list');
+					parentNode.removeChild(node);
 				}
 			},
 			error: function (request, status, error) {

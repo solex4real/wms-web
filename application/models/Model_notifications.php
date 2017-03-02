@@ -94,11 +94,50 @@ class Model_notifications extends CI_Model {
 			"viewed"=>0,
 			"date"=>$date
 		);
+		if($type=="request-update"){
+			$this->db->where(array('server_id='=>$server_id, 'restaurant_id='=>$restaurant_id, 'type='=>"server-request"));
+			$this->db->delete('notifications');
+		}
 		$this->db->insert('notifications',$data);
 		if($this->db->affected_rows()>0){
 			return true;
 		}
 		return false;
+	}
+	
+	public function email_notification($type,$restaurant_id,$server_id){
+		$query = $this->db->select('email, name')->where('id',$server_id)->get('users');
+		$query = $query->row();
+		$server_email = $query->email;
+		$server_name = $query->name;
+		$query = $this->db->select('name, email')->where('restaurant_id',$restaurant_id)->get('restaurants');
+		$query = $query->row();
+		$restaurant_name = $query->name;
+		$message = "";
+		switch($type){
+			case "server-request":
+				$message = "Hi ".$server_name."!, \n\n".
+				"You have a new request from ".$restaurant_name." to become their server.\n".
+				"To accept or decline your request, simply login using the link below and click on the accept/decline button on the notification tab.\n".
+				"Goodluck!\n".
+				"Login link:\n ".base_url()."main/login"."\n\n".
+				"Regards,\n WMS Team";
+				break;
+		}
+		//Load email library 
+        $this->load->library('email'); 
+		 
+		$from_email = "services@whosmyserver.com"; 
+		$this->email->from($from_email, 'WhosMyServer'); 
+        $this->email->to($server_email);
+        $this->email->subject('WMS Restaurant Request'); 
+		$this->email->message($message); 
+		if($this->email->send()){
+			return true;
+		}else{
+			return false;
+		}
+		
 	}
 	
 	//Update Notification

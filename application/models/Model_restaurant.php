@@ -284,12 +284,23 @@ class Model_restaurant extends CI_Model {
 		$end = date('Y-m-d H:i:s', 
 		strtotime('+60 minutes', strtotime($start)));//add 60 mins from datetime 
 		
-		//Sub query of reservation time
-		$this->db->select('reservation_time, server_id, restaurant_id, SUM(customer_size) as table_total,')->from('reservation');
+		//Sub query of online reservation time
+		$this->db->select('reservation_time, server_id, restaurant_id, SUM(customer_size) as table_total')->from('reservation');
 		$this->db->where('reservation.restaurant_id ',$restaurant_id);
 		$this->db->where('reservation.reservation_time <=',$start);
 		$this->db->having('ADDTIME(reservation.reservation_time, "01:00:00") >=',$start);
-		$subQuery =  $this->db->get_compiled_select();
+		$subQuery1 =  $this->db->get_compiled_select();
+		
+		//Sub query for guest reservation time
+		$this->db->select('arrival_time as reservation_time, server_id, restaurant_id, SUM(customer_size) as table_total')->from('reservation_guest');
+		$this->db->where('reservation_guest.restaurant_id ',$restaurant_id);
+		$this->db->having('reservation_guest.arrival_time <=',$start);
+		$this->db->having('ADDTIME(reservation_guest.arrival_time, "0 01:00:00") >=',$start);
+		$subQuery2 =  $this->db->get_compiled_select();
+		
+		//Combined query
+		$this->db->query("SELECT * FROM(".$subQuery1." UNION ".$subQuery2.") as t");
+		$subQuery = $this->db->last_query();
 		
 		$this->db->select('servers.user_id, servers.server_limit, reservation.table_total as table_total, 
 		reservation.reservation_time, calendar.start, calendar.end, calendar.title, 
@@ -304,6 +315,7 @@ class Model_restaurant extends CI_Model {
 		$this->db->join('ratings','servers.user_id = ratings.server_id', 'left');
 		$this->db->where('calendar.start <=',$start);
 		$this->db->where('calendar.end >=',$end);
+		$this->db->where('servers.status',1);
 		$this->db->having('coalesce(servers.server_limit - reservation.table_total,servers.server_limit, reservation.table_total) >', $group_size);
 		$this->db->group_by('servers.user_id');
 		$query = $this->db->get();

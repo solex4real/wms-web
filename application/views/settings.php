@@ -10,7 +10,7 @@
                                 <ul class="tab-nav" role="tablist">
                                     <li class="active"><a href="#info11" aria-controls="info11" role="tab" data-toggle="tab">INFO SETTINGS</a></li>
                                     <li><a href="#page11" aria-controls="page11" role="tab" data-toggle="tab">PAGE SETTINGS</a></li>
-                                    <li><a href="#page12" aria-controls="page12" role="tab" data-toggle="tab">RESERVATION SETTINGS</a></li>
+                                    <li><a href="#page12" aria-controls="page12" role="tab" data-toggle="tab">SERVER SETTINGS</a></li>
                                     
                                 </ul>
                               
@@ -59,8 +59,8 @@
         <script src="<?= base_url();?>material/js/demo.js"></script>
         
 		<script type="text/javascript">
-			var server_data = '<?php echo json_encode($servers);?>';
-			var server_data = JSON.parse(server_data);
+			//var server_data = ;
+			var server_data = <?php echo json_encode($servers);?>;
             $(document).ready(function() {
 				var restaurant_id = "<?php echo $user_id;?>";
 				var banner_path = "<?php echo $page_data->banner_path;?>";

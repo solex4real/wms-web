@@ -17,6 +17,7 @@ class Model_tables extends CI_Model {
 		$end = strtotime(date('Y-m-d H:i:s').' +8 hours');
 		$date1 = date("Y-m-d H:i:s", $start);
 		$date2 = date("Y-m-d H:i:s", $end);
+		
 		//sub query for customer reservations
 		$this->db->select('reservation.id as res_id, reservation.arrival_time, reservation.turn_time,
 		reservation.reservation_id, tables.table_id, users.name as customer_name,
@@ -48,6 +49,28 @@ class Model_tables extends CI_Model {
 		$this->db->having('DATE_FORMAT(reservation_guest.arrival_time, "%Y-%m-%d %H:%i:%s") <',$date2);
 		$subQuery2 =  $this->db->get_compiled_select();
 		
+		//Query for upcoming reservation dates for tables
+		//Reserved customer query
+		$this->db->select('reservation.reservation_id, reservation.arrival_time, reservation_tables.table_id');
+		$this->db->from('reservation');
+		$this->db->join('reservation_tables', 'reservation.reservation_id = reservation_tables.reservation_id', 'left');
+		$this->db->where('reservation.restaurant_id', $restaurant_id);
+		$this->db->having('reservation.arrival_time >=',date('Y-m-d H:i:s'));
+		$this->db->having('reservation.arrival_time <=',$date2);
+		$subQueryr = $this->db->get_compiled_select();
+		//Guest customer query
+		$this->db->select('reservation_guest.reservation_guest_id as reservation_id, reservation_guest.arrival_time, reservation_tables.table_id');
+		$this->db->from('reservation_guest');
+		$this->db->join('reservation_tables', 'reservation_guest.reservation_guest_id = reservation_tables.reservation_guest_id', 'left');
+		$this->db->where('reservation_guest.restaurant_id', $restaurant_id);
+		$this->db->having('reservation_guest.arrival_time >=',date('Y-m-d H:i:s'));
+		$this->db->having('reservation_guest.arrival_time <=',$date2);
+		$subQueryg = $this->db->get_compiled_select();
+		//Combine query for reserved and guest customers
+		$this->db->query("SELECT t.reservation_id, t.table_id, GROUP_CONCAT(t.arrival_time) as upcoming FROM(".$subQueryr." UNION ".$subQueryg.") as t GROUP BY t.table_id")->result();
+		$subQuery3 =  $this->db->last_query();
+		$this->db->flush_cache();
+		
 		//Sub query for all reservations
 		$this->db->query($subQuery1." UNION ".$subQuery2)->result();
 		$subQuery =  $this->db->last_query();
@@ -55,12 +78,15 @@ class Model_tables extends CI_Model {
 		
 		$this->db->select('table_sections.*,tables.*,tab_res.turn_time, tab_res.reservation_id,
 		tab_res.arrival_time, tab_res.customer_name, tab_res.server_name, tab_res.res_id,
-		ADDTIME(tab_res.arrival_time, (tab_res.turn_time)) as turn_time_val, tab_res.type as res_type');
+		ADDTIME(tab_res.arrival_time, (tab_res.turn_time)) as turn_time_val, table_upcoming.upcoming,
+		tab_res.type as res_type');
 		$this->db->from('tables');
 		$this->db->join('table_sections' ,'tables.section_id = table_sections.section_id','inner');
 		$this->db->join("($subQuery) as tab_res", 'tables.table_id = tab_res.table_id',
 		'left');
+		$this->db->join("($subQuery3) as table_upcoming",'tables.table_id = table_upcoming.table_id','left');
 		$this->db->where('tables.restaurant_id',$restaurant_id);
+		$this->db->group_by('tables.table_id');
 		$query = $this->db->get();
 		return $query->result();
 	}

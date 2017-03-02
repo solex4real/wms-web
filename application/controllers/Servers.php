@@ -47,9 +47,12 @@ class Servers extends CI_Controller {
 		$search_data = $this->input->post('search_data');
 		$this->load->model('model_servers');
 		$query = $this->model_servers->get_autocomplete($search_data);
+		echo json_encode($query);
+		/*
 		foreach ($query->result() as $row):
 		echo "<div><a href='" . base_url() . "servers/openprofile/" . $row->username ." ' class='list-group-item'>" . $row->name . "</a></div>";
 		endforeach;
+		*/
 	}
 	
 	public function get_server(){

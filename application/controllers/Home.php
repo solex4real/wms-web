@@ -41,7 +41,7 @@ class Home extends CI_Controller {
 				$data = array(
 					'user_data' => $user_data,
 					'name' => $user_data['name'],
-					'view' => 'Home',
+					'view' => 'Dashboard',
 					'icon_path'=>$user_data['icon_path'],
 					'notification'=>$notification,
 					'reservation_dates'=>$this->model_reservations->get_reservation_dates($user_data['id']),
