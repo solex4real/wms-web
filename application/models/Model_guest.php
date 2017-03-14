@@ -108,6 +108,62 @@ class Model_guest extends CI_Model {
 		return false;
 	}
 	
+	//Guest reservation data for dashboard page
+	public function get_reservation_dates($restaurant_id,$range="Today"){
+		
+		
+		$end = date('Y-m-d');
+		$data = array();
+		$this->db->select('COUNT(reservation_guest_id) as reservation_total, arrival_time as reservation_time');
+		$this->db->where('restaurant_id ',$restaurant_id);
+		
+		//Change query based on range
+		switch($range){
+			case "Today":
+				$this->db->where("reservation_guest.arrival_time>=",$end);
+				$this->db->group_by('MONTH(date), YEAR(date), DAY(date), HOUR(date), MINUTE(date)');
+				break;
+			case "Two Weeks":
+				$time = strtotime($end.' -14 days');
+				$start = date("Y-m-d", $time);
+				$this->db->where("reservation_guest.arrival_time>=",$start);
+				$this->db->group_by('MONTH(date), YEAR(date), DAY(date)');
+				break;
+			case "6 Months":
+				$time = strtotime($end.' -6 months');
+				$start = date("Y-m-d", $time);
+				$this->db->where("reservation_guest.arrival_time>=",$start);
+				$this->db->group_by('MONTH(date), YEAR(date)');
+				break;
+			case "1 Year":
+				$time = strtotime($end.' -1 year');
+				$start = date("Y-m-d", $time);
+				$this->db->where("reservation_guest.arrival_time>=",$start);
+				$this->db->group_by('MONTH(date), YEAR(date)');
+				break;
+			case "5 Years":
+				$time = strtotime($end.' -5 years');
+				$start = date("Y-m-d", $time);
+				$this->db->where("reservation_guest.arrival_time>=",$start);
+				$this->db->group_by('YEAR(date)');
+				break;
+			case "Max":
+				$this->db->group_by('YEAR(date)');
+				break;
+			default:
+		}
+		$query = $this->db->get('reservation_guest');
+		return $query->result();
+	}
+	
+	public function get_reservation_count($restaurant_id){
+		$data = array();
+		$date = date('Y-m-d');
+		$data['total'] = $this->db->where('restaurant_id', $restaurant_id)->count_all_results('reservation_guest');
+		$data['total-today'] = $this->db->where('restaurant_id', $restaurant_id)->like('reservation_guest.arrival_time',$date)->count_all_results('reservation_guest');
+		return $data;
+	}
+	
 	public function get_name_autocomplete($restaurant_id,$search_data){
 		$limit = 10;
 		$this->db->select('reservation_guest.id, reservation_guest.reservation_guest_id, reservation_guest.arrival_time,
@@ -190,7 +246,7 @@ class Model_guest extends CI_Model {
 					color: white;
 				}
 				.center{
-					text-align: center
+					text-align: center;
 					width: 100%;
 				}
 			</style>".

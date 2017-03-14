@@ -1412,6 +1412,9 @@ function checkinUser(){
 	$('#checkin-input-turn-time').mask("00:00:00");
 	//Clear form
 	$('#view-checkin-user').find('form')[0].reset();
+	//Set current time and date
+	$('#checkin-input-time').val(moment().format('hh:mm A'));
+	$('#checkin-input-date').val(moment().format('YYYY-MM-DD'));
 	//Show form
 	$('#view-checkin-user').modal('show');
 	//On click save button
@@ -1447,8 +1450,10 @@ function checkinUser(){
 			table_data = JSON.stringify(table_data);
 			var checkin_date = document.getElementById('checkin-input-date').value;//$('#checkin-input-date').val();
 			var checkin_time = document.getElementById('checkin-input-time').value;//$('#checkin-input-time').val();
-			var arrival_time = new Date(checkin_date+" "+checkin_time);
-			arrival_time = moment(arrival_time).format('YYYY-MM-DD HH:mm:ss');
+			//var arrival_time = new Date(checkin_date+" "+checkin_time);
+			var arrival_time = checkin_date+" "+checkin_time;
+			arrival_time = moment(arrival_time, 'YYYY-MM-DD HH:mm A').format('YYYY-MM-DD HH:mm:ss');
+			console.log(arrival_time);
 			var status = $('#checkin-input-status').val();
 			var restaurant_id = '<?php echo $user_data['id'];?>';
 			var urlStr = "";
@@ -1602,7 +1607,7 @@ function changeCustomerStatus(context,type){
 	var turn_time_val = tab_div.data('turn-time-val');
 	var arrival_time = tab_div.data('arrival-time');
 	var status = tab_div.data('status');
-	console.log(tab_div.data());
+	//console.log(tab_div.data());
 	
 	//Set data on modal
 	$("#status-input-name").val(customer_name);
@@ -1641,6 +1646,7 @@ function changeCustomerStatus(context,type){
 	$("#status-input-time").val(time_val);
 	
 	
+	
 	//Refresh selectable list
 	table_list.selectpicker("refresh");
 	switch(type){
@@ -1660,6 +1666,8 @@ function changeCustomerStatus(context,type){
 	
 	//On click save button
 	$('#save-status-data').unbind('click').bind('click', function(){
+		form = $('#status-form');
+		if(form.valid()){
 		$('.page-loader').show();
 		//Get data info
 		var customer_name = $('#status-input-name').val();
@@ -1671,6 +1679,10 @@ function changeCustomerStatus(context,type){
 		var server_id = $('#status-server-list').val();
 		var customer_size = document.getElementById('status-input-customer-size').value;//$('checkin-input-customer-size').val();
 		var turn_time = document.getElementById('status-input-turn-time').value;
+		//new arrival time
+		var date1 = $("#status-input-date").val();
+		var time1 = $("#status-input-time").val();
+		var arrival_time = moment(date1+" "+time1, 'YYYY-MM-DD h:mm A').format('YYYY-MM-DD HH:mm:ss');
 		var table_data = [];
 		var table_list = $('#status-table-list').val();
 		//console.log(table_list);
@@ -1724,7 +1736,7 @@ function changeCustomerStatus(context,type){
 				$('.page-loader').hide();
 			}
 		});
-		
+		}
 	});
 	
 }

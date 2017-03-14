@@ -159,7 +159,7 @@ if($user_data['is_logged_in']){
                                     <div class="input-group form-group">
                                         <span class="input-group-addon"><i class="md md-event"></i></span>
                                             <div class="dtp-container dropdown fg-line">
-                                            <input type='text' id="date" class="form-control date-picker" data-date-format='MM-DD-YYYY' value="<?php echo date("m-d-Y");?>" data-toggle="dropdown" placeholder="Select Date">
+                                            <input type='text' id="date" class="form-control date-picker" data-date-format='MM-DD-YYYY' data-toggle="dropdown" placeholder="Select Date">
                                         </div>
                                     </div>
                                 </div>
@@ -168,7 +168,7 @@ if($user_data['is_logged_in']){
                                     <div class="input-group form-group">
                                         <span class="input-group-addon"><i class="md md-access-time"></i></span>
                                             <div class="dtp-container dropdown fg-line">
-                                            <input type='text' id="time" class="form-control time-picker" value="<?php echo date("h:i A");?>" data-toggle="dropdown" placeholder="Select Time">
+                                            <input type='text' id="time" class="form-control time-picker" data-toggle="dropdown" placeholder="Select Time">
                                         </div>
                                     </div>
                                 </div>
@@ -304,6 +304,10 @@ if($user_data['is_logged_in']){
 			$('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
 				
 			});
+			
+						//Set current time and date
+						$('#time').val(moment().format('hh:mm A'));
+						$('#date').val(moment().format('MM-DD-YYYY'));
 						//Search button action 
 						$('#searchRes').unbind('click').bind('click', function(){
 							tableAvailable();

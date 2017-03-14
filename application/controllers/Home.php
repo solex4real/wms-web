@@ -38,6 +38,7 @@ class Home extends CI_Controller {
 			if($user_data['type']=="restaurant"){
 				$this->load->model('model_restaurant');
 				$this->load->model('model_reservations');
+				$this->load->model('model_guest');
 				$data = array(
 					'user_data' => $user_data,
 					'name' => $user_data['name'],
@@ -46,6 +47,7 @@ class Home extends CI_Controller {
 					'notification'=>$notification,
 					'reservation_dates'=>$this->model_reservations->get_reservation_dates($user_data['id']),
 					'reservation_total'=>$this->model_reservations->get_reservation_count($user_data['id']),
+					'reservation_total_guest'=>$this->model_guest->get_reservation_count($user_data['id']),
 					'available_servers' => $this->model_restaurant->get_current_servers($user_data['id'])
 				);
 				$this->load->view('home-dashboard',$data);

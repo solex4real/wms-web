@@ -47,38 +47,63 @@
 		
 		<div class="row">
 		<!-- Charts, Data Tables and Servers-->
-		<div class="col-sm-9" >
+		<div class="col-sm-12" >
 		<div class="mini-charts">
                         <div class="row">
                             
                             
-                            <div class="col-sm-6 ">
+                            <div class="col-sm-3 ">
                                 <div class="mini-charts-item bgm-orange">
                                     <div class="clearfix">
                                         <div class="chart stats-line"></div>
                                         <div class="count">
-                                            <small>Today's Reservations</small>
+                                            <small>Today's Online Reservations</small>
                                             <h2><?php echo $reservation_total['total-today'];?></h2>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             
-                            <div class="col-sm-6 ">
+                            <div class="col-sm-3 ">
                                 <div class="mini-charts-item bgm-bluegray">
                                     <div class="clearfix">
                                         <div class="chart stats-line-2"></div>
                                         <div class="count">
-                                            <small>Total Reservations</small>
+                                            <small>Total Online Reservations</small>
                                             <h2><?php echo $reservation_total['total'];?></h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+							
+							<div class="col-sm-3 ">
+                                <div class="mini-charts-item bgm-lightgreen">
+                                    <div class="clearfix">
+                                        <div class="chart stats-line"></div>
+                                        <div class="count">
+                                            <small>Today's Guest Reservations</small>
+                                            <h2><?php echo $reservation_total_guest['total-today'];?></h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-sm-3 ">
+                                <div class="mini-charts-item bgm-cyan">
+                                    <div class="clearfix">
+                                        <div class="chart stats-line-2"></div>
+                                        <div class="count">
+                                            <small>Total Guest Reservations</small>
+                                            <h2><?php echo $reservation_total_guest['total'];?></h2>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
         </div>
+		</div>
 		
-		<div class="card">
+		<div class="card col-sm-9">
                         <div class="card-header">
                             <h2>Today's Reservations <small>Preview reservations made by customers.</small></h2>
                     </div>
@@ -89,9 +114,8 @@
                             <thead>
                                 <tr>
 									<th data-column-id="icon" data-formatter="icon" data-sortable="false">Server Icon</th>
-                                   
-                                    <th data-column-id="user_name" data-sortable="true">Customer</th>
                                     <th data-column-id="server_name" data-sortable="true" >Server</th>
+                                    <th data-column-id="user_name" data-sortable="true">Customer</th>
                                     <th data-column-id="reservation_time" data-identifier="true" data-sortable="true" data-order="desc" >Received</th>
 									<th data-column-id="status" data-formatter="status" data-sortable="false">Status</th>
                                 </tr>
@@ -101,7 +125,7 @@
         </div>
 					
 		
-		</div>
+		
 		<!-- Available Servers -->
 		<div class="col-sm-3" >
 		
@@ -264,21 +288,46 @@ $(document).ready(function(){
 	//Flow Chart
 	
 	//Get json data
-	reservation_data = '<?php echo json_encode($reservation_dates);?>';
-	reservation_data = JSON.parse(reservation_data);
-	reservation_data = reservation_data.result;
+	data = '<?php echo json_encode($reservation_dates);?>';
+	data = JSON.parse(data);
+	reservation_data = data.result; //Online Reservations
+	reservation_data_guest = data.result_guest; //Guest Reservations
+	//Parse online reservation data
 	var len = Object.keys(reservation_data).length;
 	data1 = [];
 	for(i = 0; i < len; i++){
 		
 		var str_date = reservation_data[i].reservation_time;
 		var str_total = reservation_data[i].reservation_total;
-		var val_date = str_date.split(" ");
-		var val_date = val_date[0].split("-");
+		var date = str_date.split(" ");
+		var val_date = date[0].split("-");
 		var val_year = val_date[0];
 		var val_month = val_date[1];
 		var val_day = val_date[2];
-		data1.push([gd(val_year, val_month, val_day), str_total]);
+		//Time Value
+		var val_time = date[1].split(":"); 
+		var val_hour = val_time[0]; 
+		var val_minute = val_time[1]; 
+		data1.push([gd(val_year, val_month, val_day, val_hour, val_minute), str_total]);
+		
+	}
+	//Parse guest reservation data
+	data2 = [];
+	var len = Object.keys(reservation_data_guest).length;
+	for(i = 0; i < len; i++){
+		
+		var str_date = reservation_data_guest[i].reservation_time;
+		var str_total = reservation_data_guest[i].reservation_total;
+		var date = str_date.split(" ");
+		var val_date = date[0].split("-");
+		var val_year = val_date[0];
+		var val_month = val_date[1];
+		var val_day = val_date[2];
+		//Time Value
+		var val_time = date[1].split(":"); 
+		var val_hour = val_time[0]; 
+		var val_minute = val_time[1]; 
+		data2.push([gd(val_year, val_month, val_day, val_hour, val_minute), str_total]);
 		
 	}
 	
@@ -311,12 +360,12 @@ $(document).ready(function(){
 	
     dataset = [
         {
-            label: "Visits",
+            label: "Online Visits",
             data: data1,
 			xaxis:2,
-            color: "#03A9F4",
+            color: "#26A69A",
             points: {
-                fillColor: "#ff766c",
+                fillColor: "#26A69A",
                 show: true,
                 radius: 2
             },
@@ -325,15 +374,14 @@ $(document).ready(function(){
                 lineWidth: 1
             }
         }
-		/*
 		,
         {
-            label: "Unique Visitors",
+            label: "Guest Visits",
             data: data2,
             xaxis:2,
-            color: "#03A9F4",
+            color: "#FFC107",
             points: {
-                fillColor: "#03A9F4",
+                fillColor: "#FFC107",
                 show: true,
                 radius: 2
             },
@@ -342,7 +390,6 @@ $(document).ready(function(){
                 lineWidth: 1
             }
         }
-		*/
     ];
 
     var dayOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thr", "Fri", "Sat"];
@@ -378,7 +425,8 @@ $(document).ready(function(){
             {
                 color: '#f3f3f3',
                 mode: "time",
-                timeformat: "%m/%d",
+                timeformat: "%l:%m %p",
+				twelveHourClock: true,
                 font :{
                     lineHeight: 13,
                     style: "normal",
@@ -420,8 +468,8 @@ $(document).ready(function(){
 	
 });
 
-function gd(year, month, day) {
-    return new Date(year, month - 1, day).getTime();
+function gd(year, month, day, hour=0, minute=0) {
+    return new Date(year, month - 1, day, hour, minute).getTime();
 }
 
 //Change plot range on graph
@@ -438,20 +486,63 @@ function updatePlotRange(range){
 			//console.log(json);
 			json = JSON.parse(json);
 			reservation_data = json.result;
+			reservation_data_guest = json.result_guest;
 			var len = Object.keys(reservation_data).length;
 			data1 = [];
 			for(i = 0; i < len; i++){
 				var str_date = reservation_data[i].reservation_time;
 				var str_total = reservation_data[i].reservation_total;
-				var val_date = str_date.split(" ");
-				var val_date = val_date[0].split("-");
+				var date = str_date.split(" ");
+				var val_date = date[0].split("-");
 				var val_year = val_date[0];
 				var val_month = val_date[1];
 				var val_day = val_date[2];
-				data1.push([gd(val_year, val_month, val_day), str_total]);
+				//Time Value
+				var val_time = date[1].split(":"); 
+				var val_hour = val_time[0]; 
+				var val_minute = val_time[1]; 
+				data1.push([gd(val_year, val_month, val_day, val_hour, val_minute), str_total]);
+			}
+			data2 = [];
+			var len = Object.keys(reservation_data_guest).length;
+			for(i = 0; i < len; i++){
+				var str_date = reservation_data_guest[i].reservation_time;
+				var str_total = reservation_data_guest[i].reservation_total;
+				var date = str_date.split(" ");
+				var val_date = date[0].split("-");
+				var val_year = val_date[0];
+				var val_month = val_date[1];
+				var val_day = val_date[2];
+				//Time Value
+				var val_time = date[1].split(":"); 
+				var val_hour = val_time[0]; 
+				var val_minute = val_time[1]; 
+				data2.push([gd(val_year, val_month, val_day, val_hour, val_minute), str_total]);
 			}
 			//Modify Data set
 			dataset[0].data = data1;
+			dataset[1].data = data2;
+			switch(range){
+				case 'Today':
+					options.xaxes[1].timeformat = "%l:%m %p";
+					break;
+				case 'Two Weeks':
+					options.xaxes[1].timeformat = "%b/%d";
+					break;
+				case '6 Months':
+					options.xaxes[1].timeformat = "%b";
+					break;
+				case '1 Year':
+					options.xaxes[1].timeformat = "%b, %Y";
+					break;
+				case '5 Years':
+					options.xaxes[1].timeformat = "%Y";
+					break;
+				case 'Max':
+					options.xaxes[1].timeformat = "%Y";
+					break;
+			}
+			//options.xaxes[1].timeformat = "%m/%d/%y";
 			$.plot($("#visit-over-time"), dataset, options);
 		},
 		error: function (request, ajaxOptions, thrownError) {
@@ -498,7 +589,7 @@ $(document).ready(function(){
                             return "<button type=\"button\" class=\"btn "+status_color[row.status]+" col-lg-8\" data-row-id=\"" + row.reservation_id + "\">"+status_text[row.status]+"</button>" ;
                         },
 						"icon": function(column, row) {
-                            return "<img class='img-circle' onerror='onImgError(this);' data-name='"+row.user_name+"' src='"+"<?php echo base_url();?>"+row.icon_path+"2"+"' width='30' height='30'>" ;
+                            return "<img class='img-circle' onerror='onImgError(this);' data-name='"+row.user_name+"' src='"+"<?php echo base_url();?>"+row.icon_path+"' width='30' height='30'>" ;
                         }
                 }
 				}).on("loaded.rs.jquery.bootgrid", function(e, rows)

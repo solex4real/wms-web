@@ -188,7 +188,7 @@
 					<div class="row m-t-10">
 						<div class="col-sm-6">
 							<input type="number" class="input-sm form-control" id="checkin-input-customer-size"
-								placeholder="Customer Size; eg 2" required>
+								placeholder="Customer Size; eg 2" min="1" required>
 						</div>
 						<div class="col-sm-6">
                             <div class="input-group form-group">
@@ -212,7 +212,7 @@
                             <div class="input-group form-group">
                                 <span class="input-group-addon"><i class="md md-event"></i></span>
                                 <div class="dtp-container dropdown fg-line">
-                                <input type='text' id="checkin-input-date" class="form-control date-picker" value="<?php echo date("Y-m-d");?>" data-date-format='YYYY-MM-DD' data-toggle="dropdown" placeholder="Select Date">
+                                <input type='text' id="checkin-input-date" class="form-control date-picker" data-date-format='YYYY-MM-DD' data-toggle="dropdown" placeholder="Select Date">
 								</div>
                             </div>
                         </div>     
@@ -220,14 +220,14 @@
                             <div class="input-group form-group">
                                 <span class="input-group-addon"><i class="md md-access-time"></i></span>
                                 <div class="dtp-container dropdown fg-line">
-                                <input type='text' id="checkin-input-time" class="form-control time-picker" value="<?php echo date("h:i A");?>" data-toggle="dropdown" placeholder="Select Time">
+                                <input type='text' id="checkin-input-time" class="form-control time-picker" data-toggle="dropdown" placeholder="Select Time">
                             </div>
 							</div>
                         </div>
 					</div>
 					<div class="fg-line"> 
                         <select class="selectpicker" id="checkin-input-status">
-							<option value="2" id="checkin-input-checkedin">Checked In</option>
+							<option value="2" id="checkin-input-checkedin">Seated</option>
                             <option value="1" id="checkin-input-waiting">Waiting</option>
                         </select>
 					</div>
@@ -262,7 +262,7 @@
 					</div>
 					<div class="m-t-10 fg-line">
 						<input type="text" class="input-sm form-control" id="status-input-name" 
-							placeholder="John Doe" disabled>
+							placeholder="John Doe" disabled required>
 					</div>
 					<div class="m-t-10 fg-line">
 						<input type="text" class="input-sm form-control" id="status-input-reservation-id"
@@ -288,7 +288,7 @@
 					<div class="row m-t-10">
 						<div class="col-sm-6">
 							<input type="number" class="input-sm form-control" id="status-input-customer-size"
-								placeholder="Customer Size; eg 2" />
+								placeholder="Customer Size; eg 2" min="1"/>
 						</div>
 						<div class="col-sm-6">
                             <div class="input-group form-group">
@@ -328,7 +328,7 @@
 					<label for="staus-select" class="p-t-10">Update Status</label>
 					<div class="fg-line"> 
                         <select class="selectpicker" id="status-input-status">
-							<option value="2" id="status-input-checkedin">Checked In</option>
+							<option value="2" id="status-input-checkedin">Seated</option>
 							<option value="3" id="status-input-completed">Completed</option>
                             <option value="1" id="status-input-waiting">Waiting</option>
                             <option value="0" id="status-input-onhold">On Hold</option>

@@ -310,64 +310,76 @@ class Model_reservations extends CI_Model {
 		return $result;
 	}
 	
-	public function get_today_reservations($restaurant_id,$current_page,$search_data,$order){
+	public function get_today_reservations($restaurant_id,$current_page=1,$search_data,$order){
 		
 		$limit = 10;
 		$start = ($current_page-1)*$limit;
 		$data = array();
 		$date = date('Y-m-d');
 		
-		$search_array = array(
+		$search_array1 = array(
 			's.name'=>$search_data,
 			'u.name'=>$search_data,
 			'reservation.reservation_time'=>$search_data,
 		);
+		$search_array2 = array(
+			'reservation_guest.guest_name'=>$search_data,
+			's.name'=>$search_data,
+			'reservation_guest.arrival_time'=>$search_data,
+		);
+		$search_array3 = array(
+			't.name'=>$search_data,
+			't.server_name'=>$search_data,
+			't.reservation_time'=>$search_data,
+		);
 		
 		/*
-		$this->db->select('reservation.*,users.name as user_name, users.id as user_id,
-		servers.name as server_name,servers.id as servers_id, servers.icon_path,servers.rating,
-		servers.server_limit,');
+			Get online reservations
 		*/
-		
-		$this->db->select('reservation.*,u.name as user_name, u.id as user_id,
-		servers.id as servers_id, 
-		servers.server_limit');
-		
-		$this->db->select('s.name as server_name, s.icon_path as icon_path');
+		$this->db->select('reservation.reservation_time, reservation.status,
+		u.name as user_name, reservation.server_id, reservation.restaurant_id,
+		s.name as server_name, s.icon_path as icon_path');
 	
 		$this->db->from('reservation');
 		$this->db->join('servers','reservation.server_id = servers.user_id', 'left');
 		$this->db->join('users as u','reservation.user_id = u.id', 'inner');
 		$this->db->join('users as s','reservation.server_id = s.id', 'inner');
 		
-		$this->db->or_like($search_array);
+		$this->db->or_like($search_array1);
 		$this->db->like('reservation.reservation_id', $search_data);
 		$this->db->having('DATE_FORMAT(reservation.reservation_time, "%Y-%m-%d") =',$date);
 		$this->db->having('reservation.restaurant_id ',$restaurant_id);
-		$this->db->order_by("reservation.reservation_id", $order);
+		//$this->db->order_by("reservation.reservation_id", $order);
+		$subQuery1 = $this->db->get_compiled_select();
 		
-		$this->db->limit($limit, $start);
-		//$array = array('restaurant_id=' => $restaurant_id, 'reservation_id >' => $last_id);
-		//$this->db->where($array);
-		$query = $this->db->get();
+		/*
+			Get guest reservations
+		*/
+		$this->db->select('reservation_guest.arrival_time as reservation_time, reservation_guest.status,
+		reservation_guest.guest_name as user_name, reservation_guest.server_id, reservation_guest.restaurant_id,
+		s.name as server_name, s.icon_path as icon_path');
+	
+		$this->db->from('reservation_guest');
+		$this->db->join('users as s','reservation_guest.server_id = s.id', 'left');
+		$this->db->or_like($search_array2);
+		$this->db->like('reservation_guest.restaurant_id', $search_data);
+		$this->db->having('DATE_FORMAT(reservation_guest.arrival_time, "%Y-%m-%d") =',$date);
+		$this->db->having('reservation_guest.restaurant_id ',$restaurant_id);
+		//$this->db->order_by("reservation_guest.reservation_guest_id", $order);
+		$subQuery2 = $this->db->get_compiled_select();
+		
+		$this->db->query($subQuery1." UNION ".$subQuery2);
+		$subQuery3 = $this->db->last_query();
+		$query = $this->db->query("SELECT t.* FROM(".$subQuery1." UNION ".$subQuery2.") as t LIMIT ".$limit." OFFSET ".$start."");
+		
+		//Get data
+		//$query = $this->db->get();
 		$data['rows'] = $query->result();
 		$data['current'] = $current_page;
 		$data['rowCount'] = $limit;
 		
-		//$data['total'] = $this->db->where('restaurant_id', $restaurant_id)->like('reservation_time', $date)->count_all_results('reservation');
-		
-		
-		$query = $this->db->select('reservation.restaurant_id, reservation.reservation_time')
-		->from('reservation')
-		->join('servers','reservation.server_id = servers.user_id', 'inner')
-		->join('users as u','reservation.user_id = u.id', 'inner')
-		->join('users as s','reservation.server_id = s.id', 'inner')
-		->where('reservation.restaurant_id', $restaurant_id)
-		->like('reservation.reservation_id', $search_data)
-		->or_like($search_array)
-		->having('reservation.restaurant_id',$restaurant_id)
-		->having('DATE_FORMAT(reservation.reservation_time, "%Y-%m-%d") =',$date)
-		->get();
+		//Get total number of rows available
+		$query = $query = $this->db->query("SELECT t.* FROM(".$subQuery1." UNION ".$subQuery2.") as t");
 		$data['total'] = $query->num_rows();
 		
 		return $data;
@@ -537,7 +549,7 @@ class Model_reservations extends CI_Model {
 		switch($range){
 			case "Today":
 				$this->db->where("reservation.reservation_time",$end);
-				$this->db->group_by('MONTH(date), YEAR(date), DAY(date), HOUR(date)');
+				$this->db->group_by('MONTH(date), YEAR(date), DAY(date), HOUR(date), MINUTE(date)');
 				break;
 			case "Two Weeks":
 				$time = strtotime($end.' -14 days');
@@ -570,6 +582,10 @@ class Model_reservations extends CI_Model {
 		}
 		$query = $this->db->get('reservation');
 		$data['result']  = $query->result();
+		//Load data from guest reservation
+		$CI =& get_instance();
+        $CI->load->model('model_guest');
+        $data['result_guest'] = $CI->model_guest->get_reservation_dates($restaurant_id,$range);
 		return $data;
 	}
 	
@@ -635,7 +651,7 @@ class Model_reservations extends CI_Model {
 		$this->db->where('tables.restaurant_id',$restaurant_id);
 		$this->db->where('tables.status !=',0);//Don't get tables that are unavailable
 		$this->db->where('tables.status !=',4);//Don't get tables that are closed 
-		$this->db->group_by('tables.num_chairs');
+		$this->db->group_by('tables.table_id');
 		$this->db->order_by("tables.num_chairs", "asc");
 		$query = $this->db->get();
 		$result = $query->result();

@@ -46,6 +46,10 @@
 								<div class="fg-line">
 									<input type="text" class="input-sm form-control" id="add-customer-email" required>
 								</div>
+								<label for="add-customer-phone">Customer's Phone No. (optional)</label>
+								<div class="fg-line">
+									<input type="text" class="input-sm form-control" id="add-customer-phone">
+								</div>
 								<label for="staus-select" class="p-t-10">Reservation Time</label>
 								<div class="m-t-10 row">
 									<div class="col-sm-4">
@@ -62,7 +66,7 @@
 										<div class="input-group form-group">
 											<span class="input-group-addon"><i class="md md-access-time"></i></span>
 											<div class="dtp-container dropdown fg-line">
-												<input type='text' id="add-reservation-time" class="form-control time-picker" value="<?php echo date("h:i A");?>" data-toggle="dropdown" placeholder="Select Time">
+												<input type='text' id="add-reservation-time" class="form-control time-picker" data-toggle="dropdown" placeholder="Select Time">
 											</div>
 										</div>
 									</div>
@@ -77,15 +81,7 @@
 								<div class="row">
 										<div class="col-sm-6">
 											<label for="add-group-size" class="p-t-10">Group Size</label>
-											<select id="add-group-size" class="selectpicker" data-live-search="true">
-												<option value="1" id="group1">1 Person</option>
-												<option value="2" id="group2">2 People</option>
-												<option value="3" id="group3">3 People</option>
-												<option value="4" id="group4">4 People</option>
-												<option value="5" id="group5">5 People</option>
-												<option value="6" id="group6">6 People</option>
-												<option value="7" id="group7">7 People</option>
-											</select>
+											<input type="number" class="input-sm form-control" id="add-group-size" >
 										</div>
 										<div class="col-sm-6">
 											<label for="add-table-list" class="p-t-10">Tables</label>
@@ -159,6 +155,10 @@
 								<div class="fg-line">
 									<input type="text" class="input-sm form-control" id="customer-email" >
 								</div>
+								<label for="eventName12">Customer's Phone No.</label>
+								<div class="fg-line">
+									<input type="text" class="input-sm form-control" id="customer-phone" >
+								</div>
 								<label for="eventTag1" class="p-t-10">Reservation Date</label>
 								<div class="fg-line ">
 									<input type="text" class="input-sm form-control" id="reservation" Disabled>
@@ -167,15 +167,7 @@
 								<div class="row">
 										<div class="col-sm-6">
 											<label for="eventTag1" class="p-t-10">Group Size</label>
-											<select id="group-size" class="selectpicker" data-live-search="true">
-												<option value="1" id="group1">1 Person</option>
-												<option value="2" id="group2">2 People</option>
-												<option value="3" id="group3">3 People</option>
-												<option value="4" id="group4">4 People</option>
-												<option value="5" id="group5">5 People</option>
-												<option value="6" id="group6">6 People</option>
-												<option value="7" id="group7">7 People</option>
-											</select>
+											<input type="number" class="input-sm form-control" id="group-size" >
 										</div>
 										<div class="col-sm-6">
 											<label for="eventTag1" class="p-t-10">Tables</label>
@@ -357,7 +349,7 @@
 			
 			//Load/Get available tables
 			function get_avaialable_tables(dateTime){
-				var table_data = [];
+				var table_data =  [];
 				$ .ajax ({
 					url: "<?php echo base_url(); ?>"+"reservations/get_available_tables" ,
 					data: {'dateTime': dateTime,
@@ -391,37 +383,49 @@
 				$('#add-table-list option:selected').removeAttr("selected").change();
 				//mask turn time input
 				$('#add-turn-time').mask("00:00:00");
+				//Set current time and date
+				$('#add-reservation-time').val(moment().format('hh:mm A'));
+				$('#add-reservation-date').val(moment().format('YYYY-MM-DD'));
+				
 				//Add/update available tables
 				updateAvailableTables(moment().format('YYYY-MM-DD HH:mm:ss'));
 				$('#save-add-reservation').unbind('click').bind('click', function(){
 					dateTime = new Date($('#add-reservation-date').val() + " "+ $('#add-reservation-time').val());
-					console.log(dateTime);
+					//console.log(dateTime);
 					dateTime = moment(dateTime).format('YYYY-MM-DD HH:mm:ss');
-					console.log(dateTime);
+					//console.log(dateTime);
 					form = $('#add-reservation-modal').find('form');
-					if(form.valid() && $('#add-table-list').val() != null){
-					dateTime = new Date($('#add-reservation-date').val() + " "+ $('#add-reservation-time').val());
-					dateTime = moment(dateTime).format('YYYY-MM-DD HH:mm:ss');
+					var group_size = document.getElementById("add-group-size").value;
+					//var group_size = val2.options[val2.selectedIndex].value;
+					var chairCnt = 0;
 					var table_data = [];
 					var table_list = $('#add-table-list').val();
-					//console.log(table_list);
+					$('#add-table-list option:selected').each(function(){
+						chairCnt = chairCnt + parseInt($(this).data('num-chairs'));
+					});
 					len = (table_list==null) ? 0:table_list.length;
 					for(i = 0;i < len;i++){
 						table_data.push({'table_id':table_list[i]});
 					}
 					table_data = JSON.stringify(table_data);
+					var sizeValid = chairCnt>=group_size;
+					if(!sizeValid){
+						alert("Not Enough tables for group size");
+					}
+					if(form.valid() && $('#add-table-list').val() != null && sizeValid){
+					dateTime = new Date($('#add-reservation-date').val() + " "+ $('#add-reservation-time').val());
+					dateTime = moment(dateTime).format('YYYY-MM-DD HH:mm:ss');
 					//Get Values 
 					var val1 = document.getElementById("add-server-list");
 					var server_id = val1.options[val1.selectedIndex].value;
-					var val2 = document.getElementById("add-group-size");
-					var group_size = val2.options[val2.selectedIndex].value;
 					var val3 = document.getElementById("add-status-table");
 					var status = val3.options[val3.selectedIndex].value;
 					var notes = $('#add-notes').val();
 					var email = $('#add-customer-email').val();
+					var phone = $('#add-customer-phone').val();
 					data = {'server_id':server_id,'guest_name':$('#add-customer-name').val(),
 					'notes':notes, 'arrival_time':dateTime, 'turn_time': $('#add-turn-time').val(),
-					'status':status,'customer_size':group_size,'email':$('#add-customer-email').val()};
+					'status':status,'customer_size':group_size,'email':$('#add-customer-email').val(),'phone':phone};
 					data = JSON.stringify(data);
 					//Make request
 					$.ajax({
@@ -449,15 +453,15 @@
 			//update available tables
 			function updateAvailableTables(dateTime){
 				$('#add-table-list').html("");
-				available_tables = get_avaialable_tables(dateTime);
+				var available_tables = get_avaialable_tables(dateTime);
 				len = tables.length;
 				for(i = 0;i < len;i++){
 					if(available_tables.indexOf(tables[i].table_id) > -1){
 						//table is available
-						$('#add-table-list').append("<option value='"+tables[i].table_id+"' >"+tables[i].table_id+":<span>"+tables[i].num_chairs+"</span></option>");
+						$('#add-table-list').append("<option value='"+tables[i].table_id+"' data-num-chairs='"+tables[i].num_chairs+"'>"+tables[i].table_id+":<span>"+tables[i].num_chairs+"</span></option>");
 					}else{
 						//table is not available
-						$('#add-table-list').append("<option value='"+tables[i].table_id+"' disabled>"+tables[i].table_id+":<span>"+tables[i].num_chairs+"</span></option>");
+						$('#add-table-list').append("<option value='"+tables[i].table_id+"' data-num-chairs='"+tables[i].num_chairs+"' disabled>"+tables[i].table_id+":<span>"+tables[i].num_chairs+"</span></option>");
 					}
 				}
 				$('#add-table-list').selectpicker("refresh");
@@ -486,6 +490,7 @@
 				//Set Values
 				$('#customer-name').val(reservations[pos].guest_name);
 				$('#customer-email').val(reservations[pos].email);
+				$('#customer-phone').val(reservations[pos].phone);
 				$('#reservation').val(reservations[pos].arrival_time);
 				$('#notes').val(reservations[pos].notes);
 				try{
@@ -496,38 +501,53 @@
 				}	
 				document.getElementById(status_array[reservations[pos].status]).selected = true;
 				$('#status-table').val(reservations[pos].status).change();
-				document.getElementById("group"+reservations[pos].customer_size).selected = true;
-				$('#group-size').val(reservations[pos].customer_size).change();
+				//document.getElementById("group"+reservations[pos].customer_size).selected = true;
+				$('#group-size').val(reservations[pos].customer_size);//.change();
 				//Show selected tebles
 				len = tables.length
-				available_tables = get_avaialable_tables(reservations[pos].arrival_time);
-				console.log(available_tables);
+				var available_tables = get_avaialable_tables(reservations[pos].arrival_time);
+				//console.log(available_tables);
 				tables_div = "";
 				table_ids = (reservations[pos].table_ids!=null) ? reservations[pos].table_ids.split(','):[];
-				$('#table-list option:selected').removeAttr("selected").change();
+				//$('#table-list option:selected').removeAttr("selected").change();
+				$('#table-list').html('');
 				for(i = 0;i < len;i++){
 					isSelected = (table_ids.indexOf(tables[i].table_id) > -1) ? "selected":"";
 					if(available_tables.indexOf(tables[i].table_id) > -1){
 						//table is available
-						$('#table-list').append("<option value='"+tables[i].table_id+"' "+isSelected+">"+tables[i].table_id+":<span>"+tables[i].num_chairs+"</span></option>");
+						$('#table-list').append("<option value='"+tables[i].table_id+"' "+isSelected+"  data-num-chairs='"+tables[i].num_chairs+"'>"+tables[i].table_id+":<span>"+tables[i].num_chairs+"</span></option>");
 					}else{
 						//table is not available
-						$('#table-list').append("<option value='"+tables[i].table_id+"' disabled "+isSelected+">"+tables[i].table_id+":<span>"+tables[i].num_chairs+"</span></option>");
+						$('#table-list').append("<option value='"+tables[i].table_id+"' disabled "+isSelected+"  data-num-chairs='"+tables[i].num_chairs+"'>"+tables[i].table_id+":<span>"+tables[i].num_chairs+"</span></option>");
 					}
 				}
 				$('#table-list').selectpicker("refresh");
 				//Save button action #saveOrder
 				$('#save-reservation').unbind('click').bind('click', function(){
+					
+					var group_size = document.getElementById("group-size").value;
+					//var group_size = val2.options[val2.selectedIndex].value;
+					var chairCnt = 0;
+					$('#table-list option:selected').each(function(){
+						chairCnt = chairCnt + parseInt($(this).data('num-chairs'));
+						console.log($(this).data('num-chairs'));
+					});
+					//console.log("Chair Count: "+chairCnt);
+					var sizeValid = chairCnt>=group_size;
+					if(!sizeValid){
+						alert("Not Enough tables for group size");
+					}
+					form = $('#edit-reservation').find('form');
+				if(form.valid()&&sizeValid){
 					//Get Values 
 					var val1 = document.getElementById("server");
 					var server_id = val1.options[val1.selectedIndex].value;
-					var val2 = document.getElementById("group-size");
-					var group_size = val2.options[val2.selectedIndex].value;
 					var val3 = document.getElementById("status-table");
 					var status = val3.options[val3.selectedIndex].value;
 					var notes = $('#notes').val();
 					var email = $('#customer-email').val();
-					data = [{'id':reservations[pos].id,'server_id':server_id,'customer_size':group_size,'email':email,'notes':notes,'status':status}];
+					var phone = $('#customer-phone').val();
+					data = [{'id':reservations[pos].id,'server_id':server_id,'customer_size':group_size,'phone':phone,'email':email,'notes':notes,'status':status}];
 					data = JSON.stringify(data);
 					var table_data = [];
 					var table_list = $('#table-list').val();
@@ -562,7 +582,7 @@
 								}
 
 					});
-					
+				}
 					
 				});
 				

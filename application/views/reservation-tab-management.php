@@ -35,7 +35,7 @@
 			<div class="panel-heading" role="tab" id="headingOne">
 				<h4 class="panel-title">
 					<a data-toggle="collapse" data-parent="#accordion" href="#current-reservations" aria-expanded="false" aria-controls="collapseOne">
-						Current/Seated
+						Seated
 					</a>
 				</h4>
 			</div>
