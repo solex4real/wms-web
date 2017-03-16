@@ -1396,18 +1396,8 @@ function checkinUser(){
 	$('#checkin-form')[0].reset();
 	//Add tables to option list
 	table_list = $('#checkin-table-list');
-	len = tables.length;
-	div = "";
-	for(i = 0;i < len;i++){
-		//Check table type
-		tType = (tables[i].res_type=="guest") ? "a":"";
-		//Disable table if it is currently occupied
-		disabledTable = ($('#res-table-id-'+tables[i].table_id+tType).data('is-occupied')) ? "disabled":"";
-		//add tables to list
-		table_list.append("<option value='"+tables[i].table_id+"' "+disabledTable+">"+tables[i].table_id+"<span>:"+tables[i].num_chairs+" </span></option>");
-	}
-	//Refresh selectable list
-	table_list.selectpicker("refresh");
+	loadTables(table_list);
+
 	//Change format of turn time
 	$('#checkin-input-turn-time').mask("00:00:00");
 	//Clear form
@@ -1584,6 +1574,7 @@ function changeCustomerStatus(context,type){
 	table_list = $('#status-table-list');
 	len = tables.length;
 	div = "";
+	table_list.html('');
 	for(i = 0;i < len;i++){
 		table_list.append("<option value='"+tables[i].table_id+"' >"+tables[i].table_id+"<span>:"+tables[i].num_chairs+" </span></option>");
 	}
@@ -1628,27 +1619,12 @@ function changeCustomerStatus(context,type){
 	user_table = String(user_table);
 	user_table = user_table.split(",");
 	table_list = $('#status-table-list');
-	table_list.html("");
-	len = tables.length;
-	for(i = 0;i < len;i++){
-		if(user_table.indexOf(tables[i].table_id) > -1){
-				table_list.append("<option value='"+tables[i].table_id+"' selected>"+
-				tables[i].table_id+"<span>:"+tables[i].num_chairs+" </span></option>");
-		}else{
-			table_list.append("<option value='"+tables[i].table_id+"' >"+
-			tables[i].table_id+"<span>:"+tables[i].num_chairs+" </span></option>");
-		}
-	}
+	loadTables(table_list, user_table);
 	//Change arrival time
 	var arrival_time_array  = arrival_time.split(" ");
 	time_val = moment(arrival_time,'YYYY-MM-DD HH:mm:ss').format("h:mm A");
 	$("#status-input-date").val(arrival_time_array[0]);
 	$("#status-input-time").val(time_val);
-	
-	
-	
-	//Refresh selectable list
-	table_list.selectpicker("refresh");
 	switch(type){
 		case 'waiting': //Customers on waiting list
 			$("#status-input-type").val(customer_type).change();
@@ -1863,19 +1839,7 @@ function checkinLoad(listType,reservation_id){
 			console.log(user_table);
 			user_table = user_table.split(",");
 			table_list = $('#checkin-table-list');
-			table_list.html("");
-			len = tables.length;
-			for(i = 0;i < len;i++){
-				if(user_table.indexOf(tables[i].table_id) > -1){
-					table_list.append("<option value='"+tables[i].table_id+"' selected>"+
-					tables[i].table_id+"<span>:"+tables[i].num_chairs+" </span></option>");
-				}else{
-					table_list.append("<option value='"+tables[i].table_id+"' >"+
-					tables[i].table_id+"<span>:"+tables[i].num_chairs+" </span></option>");
-				}
-			}
-			//Refresh selectable list
-			table_list.selectpicker("refresh");
+			loadTables(table_list, user_table);
 			}
 			
 		},
@@ -1890,6 +1854,54 @@ function checkinLoad(listType,reservation_id){
 	
 }
 
+//Load available tables list for costumers
+function loadTables(context, user_table=[]){
+	//console.log(user_table);
+	//Get available tables for today's time
+	dateTime = moment().format('YYYY-MM-DD HH:mm:ss');
+	$ .ajax ({
+		url: "<?php echo base_url(); ?>"+"reservations/get_available_tables" ,
+		data: {'dateTime': dateTime,
+				'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
+				},
+		type: 'POST' ,
+		async: false,
+		ContentType: 'application/json',
+		success: function (json) {
+			context.html('');
+			json = JSON.parse(json);
+			len = tables.length
+			for(i = 0;i < len;i++){
+				isDisabled = (json.table_ids.indexOf(tables[i].table_id) > -1) ? '':'disabled';
+				isSelected = (user_table.indexOf(tables[i].table_id) > -1) ? 'selected':'';
+				//Hightlight table if currently in use or disabled
+				className = (json.table_ids.indexOf(tables[i].table_id) > -1) ? '':'bgm-yellow';
+				if(json.table_ids.indexOf(tables[i].table_id) > -1){
+					//Check table type
+					tType = (tables[i].res_type=="guest") ? "a":"";
+					//Disable table if it is currently occupied
+					isDisabled = ($('#res-table-id-'+tables[i].table_id+tType).data('is-occupied')) ? "disabled":"";
+					//Hightlight table if currently in use or disabled
+					className = ($('#res-table-id-'+tables[i].table_id+tType).data('is-occupied')) ? 'bgm-yellow':'';
+				}
+				
+				//Check if it is currently selected
+				if(user_table.indexOf(tables[i].table_id) > -1){
+					isDisabled = '';
+				}
+				//Add table to list
+				context.append("<option class='"+className+"' value='"+tables[i].table_id+"'  "+isDisabled+" "+isSelected+">"+
+					tables[i].table_id+"<span>:"+tables[i].num_chairs+" </span></option>");
+			}
+			//Refresh selectable list
+			context.selectpicker("refresh");
+		},
+		error: function (request, status, error) {
+			console.error(request.responseText);
+		}
+
+	});
+}
 
 //Get percentage on turn time
 function get_turn_time_percent(arrival_time,turn_time_val){

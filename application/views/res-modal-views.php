@@ -188,7 +188,7 @@
 					<div class="row m-t-10">
 						<div class="col-sm-6">
 							<input type="number" class="input-sm form-control" id="checkin-input-customer-size"
-								placeholder="Customer Size; eg 2" min="1" required>
+								placeholder="Party Size; eg 2" min="1" required>
 						</div>
 						<div class="col-sm-6">
                             <div class="input-group form-group">
@@ -288,7 +288,7 @@
 					<div class="row m-t-10">
 						<div class="col-sm-6">
 							<input type="number" class="input-sm form-control" id="status-input-customer-size"
-								placeholder="Customer Size; eg 2" min="1"/>
+								placeholder="Party Size; eg 2" min="1"/>
 						</div>
 						<div class="col-sm-6">
                             <div class="input-group form-group">
