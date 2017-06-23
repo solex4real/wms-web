@@ -71,6 +71,7 @@
 				document.getElementById('res-start-day').value="<?php echo $page_data->start_day?>";
 				document.getElementById('res-end-day').value="<?php echo $page_data->end_day?>";
 				
+				
 				//Restaurant Reservation Settings
 				document.getElementById('server-status').value="<?php 
 					if(!empty($servers)){
@@ -408,7 +409,7 @@
 					res_start_time = formatTime($('#start-time').val());
 					res_end_time = formatTime($('#end-time').val());
 					
-				if(res_name==""||res_email==""||res_contact==""||res_zip==""||res_state==""){
+					if(res_name==""||res_email==""||res_contact==""||res_zip==""||res_state==""){
 						notify("top","right", "fa fa-comments", "danger", "animated fadeIn", "animated fadeIn", "All Restaurant fields required!");
 					}else{
 						$ .ajax ({	
@@ -433,6 +434,8 @@
 					}
 					//notify("top","right", "fa fa-comments", "success", "animated fadeIn", "animated fadeIn", "Content Saved Successfully!");
 				});
+				
+				
 				
 				
 				//Change owner settings
@@ -728,27 +731,7 @@
 			}
 			
 			
-			//Time Format e.i H:i:s
-				function formatTime(time) {
-							time = time.split(' ');
-							var hour = 0;
-							time_val = time[0].split(':');
-							switch(time[1]){
-								case "AM":
-									hour = 0;
-									break;
-								case "PM":
-									hour = 12;
-									break;
-							}
-							
-							var hour_val = +time_val[0]; 
-							hour = hour + hour_val;
-							var str_time = " "+hour+":"+time_val[1]+":00";
-							var str = str_time;
-							//alert(str);
-							return str;
-				};
+			
 			
 			
 			function isEmpty(str) {
@@ -800,6 +783,78 @@
   
 				
 				}); 
+				
+				//Time Format e.i H:i:s
+				function formatTime(time) {
+					time = time.split(' ');
+					var hour = 0;
+					time_val = time[0].split(':');
+					switch(time[1]){
+						case "AM":
+							hour = 0;
+							break;
+						case "PM":
+							hour = 12;
+							break;
+					}
+							
+					var hour_val = +time_val[0]; 
+					hour = hour + hour_val;
+					var str_time = " "+hour+":"+time_val[1]+":00";
+					var str = str_time;
+					//alert(str);
+					return str;
+				};
+				
+				//add new schedule for restaurant
+				function add_schedule(){
+					//Start and end time
+					start_day = $("#res-start-day :selected").val();
+					end_day = $("#res-end-day :selected").val();
+					start_time = formatTime($('#start-time').val());
+					end_time = formatTime($('#end-time').val());
+					$ .ajax ({			
+						url: "<?php echo base_url(); ?>"+"Restaurant/add_schedule" ,
+						data: {'start_day': start_day,'end_day': end_day,
+							'start_time':start_time,'end_time':end_time,
+							'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
+						},
+						type: 'POST' ,
+						ContentType: 'application/json',
+						success: function (json) {
+							json = JSON.parse(json);
+							if(json.success!=true){
+								notify("top", "right", "fa fa-comments", "danger", "animated fadeIn", "animated fadeIn", "Failed to update! ");
+							}else{
+								div = "<div class='chip'>"
+										+start_day.toUpperCase()+" - "+end_day.toUpperCase()+" "+$('#start-time').val()+" - "+$('#end-time').val()+
+										"<span class='closebtn' onclick='remove_schedule(this,"+json.id+")'>&times;</span>"+
+										"</div>";
+								//add chip to list
+								$("#schedule-list").append(div);
+							}							
+						}
+					});
+				}
+				//remove restaurant schedule
+				function remove_schedule(object, id){
+					$ .ajax ({			
+						url: "<?php echo base_url(); ?>"+"Restaurant/remove_schedule" ,
+						data: {'id': id,
+							'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
+						},
+						type: 'POST' ,
+						ContentType: 'application/json',
+						success: function (json) {
+							if(json!=true){
+								notify("top", "right", "fa fa-comments", "danger", "animated fadeIn", "animated fadeIn", "Failed to update! ");
+							}else{
+								//remove chip from list
+								object.parentElement.style.display='none';
+							}							
+						}
+					});
+				}
 				
         </script>
 		

@@ -1463,7 +1463,7 @@ function checkinUser(){
 				urlStr = "reservation_guest/add_reservation";
 				data = {'restaurant_id':restaurant_id,'server_id':server_id,'guest_name':customer_name,
 				'notes':notes,'customer_size':customer_size,'arrival_time':arrival_time,'turn_time':turn_time,
-				'status':status};
+				'walkin':1,'status':status};
 			}
 			//console.log(table_data);
 			data = JSON.stringify(data);
@@ -1491,6 +1491,10 @@ function checkinUser(){
 					$('.page-loader').hide();
 				}
 			});
+		}else{
+			if($('#checkin-table-list').val()==null){
+				alert("Tables not selected");
+			}
 		}
 		
 	});

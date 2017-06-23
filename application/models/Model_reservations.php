@@ -586,6 +586,7 @@ class Model_reservations extends CI_Model {
 		$CI =& get_instance();
         $CI->load->model('model_guest');
         $data['result_guest'] = $CI->model_guest->get_reservation_dates($restaurant_id,$range);
+		$data['result_walkin'] = $CI->model_guest->get_walkin_dates($restaurant_id,$range);
 		return $data;
 	}
 	

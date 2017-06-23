@@ -262,8 +262,8 @@
        <?php $this->load->view('footer');?>
 	   
 	   <!--Load Nodejs Library for sockect IO-->
-	   <script src="<?php echo base_url();?>/nodejs/node_modules/socket.io/node_modules/socket.io-client/dist/socket.io.min.js"></script>
-        
+		<script src="<?php echo base_url('node_modules/socket.io/node_modules/socket.io-client/socket.io.js');?>"></script>
+		
         <script src="<?= base_url();?>material/vendors/nicescroll/jquery.nicescroll.min.js"></script>
         <script src="<?= base_url();?>material/vendors/waves/waves.min.js"></script>
         <script src="<?= base_url();?>material/vendors/bootstrap-growl/bootstrap-growl.min.js"></script>
@@ -274,18 +274,35 @@
         
 		<script type="text/javascript">
 		$(function(){
+			//Start node js server
 			/*
-			var socket = new io.Socket('http://localhost:8080');
+			$.ajax({
+				type: "PSOT",
+				url: "<?php echo base_url("node/node_start"); ?>",
+				data: {
+					'<?php echo $this->security->get_csrf_token_name(); ?>': 
+					'<?php echo $this->security->get_csrf_hash(); ?>'
+				},
+				success: function(json){
+					console.log("Started");
+				}
+			});
+			*/
+			
+			var socket = io.connect( 'http://'+window.location.hostname+':3000' );
+			
 			socket.on('connect', function(){
 				// connected!
 				alert("Connected");
 			});
 			socket.on('message', function(msg){
 				// message coming
-				alert(msg);
+				console.log(msg);
 			});
-			//socket.send('Hello world!');
-			*/
+			
+			socket.send('Hello world!');
+			
+			/*
 			var io = require('sockect.io').listen(80);
 			
 			io.sockets.on('connection',function(socket){
@@ -295,6 +312,7 @@
 					console.log(data);
 				});
 			});
+			*/
 			
 			
 			});

@@ -223,7 +223,11 @@ class main extends CI_Controller {
 	}
 	
 	public function test(){
-		echo $this->session->flashdata('link');
+		//echo $this->session->flashdata('link');
+		$password = "criaWrlu8hiU";
+		$salt = substr(strtr(base64_encode(openssl_random_pseudo_bytes(22)), '+', '.'), 0, 22);
+		$hash = crypt($password, '$2y$12$' . $salt);
+		print_r(array("salt"=>$salt,"hash"=>$hash)); 
 	}
 	
 	public function check_username(){

@@ -64,10 +64,12 @@ if($user_data['is_logged_in']){
                                     <li><i class="md md-room"></i> <?php echo $data_restaurant->address.", ".
 									$data_restaurant->county.", ".$data_restaurant->state.". ".$data_restaurant->zip.".";?></li>
                                     <li><i class="md md-schedule"></i> <?php
-										echo $data_restaurant->start_day." - ".$data_restaurant->end_day;
-										echo "<br/>";
-										echo date('h:i A', strtotime($data_restaurant->start_time))." - ".date('h:i A', strtotime($data_restaurant->end_time));
-										
+										foreach($schedule as $row){
+											echo $row->start_day." - ".$row->end_day;
+											echo "<br/>";
+											echo date('h:i A', strtotime($row->start_time))." - ".date('h:i A', strtotime($row->end_time));
+											echo "<br/>";
+										}
 									?></li>
 									 <?php 
 										if(empty($data_restaurant->url)||$data_restaurant->url==""){

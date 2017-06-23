@@ -491,9 +491,10 @@ class Restaurant extends CI_Controller {
 				'icon_path'=>$user_data['icon_path'],
 				'view' => 'Home',
 				'data' => $this->model_restaurant->get_available_servers($data_restaurant->restaurant_id,$date),
-				'servers'=>$this->model_servers->get_servers($data_restaurant->restaurant_id)
+				'servers'=>$this->model_servers->get_servers($data_restaurant->restaurant_id),
+				'schedule'=>$this->model_restaurant->get_schedule($data_restaurant->restaurant_id)
 			);
-		$this->load->view('restaurant-profile', $data);
+		$this->load->view('restaurant-profile-update', $data);
 		}
 		}else{
 			$user_data = $this->session->userdata('is_logged_in');
@@ -506,9 +507,10 @@ class Restaurant extends CI_Controller {
 				'icon_path'=>$user_data['icon_path'],
 				'view' => 'Home',
 				'data' => $this->model_restaurant->get_available_servers($data_restaurant->restaurant_id,$date),
-				'servers'=>$this->model_servers->get_servers($data_restaurant->restaurant_id)
+				'servers'=>$this->model_servers->get_servers($data_restaurant->restaurant_id),
+				'schedule'=>$this->model_restaurant->get_schedule($data_restaurant->restaurant_id)
 			);
-			$this->load->view('restaurant-profile', $data);
+			$this->load->view('restaurant-profile-update', $data);
 		}
 	}
 	
@@ -516,6 +518,31 @@ class Restaurant extends CI_Controller {
 		$this->load->model('model_restaurant');
 		$val = $this->model_restaurant->test();
 		var_dump($val);
+	}
+	
+	public function get_schedule(){
+		$user_data = $this->session->userdata;
+		$this->load->model('model_restaurant');
+		$result = $this->model_restaurant->get_schedule($user_data['id']);
+		echo json_encode($result);
+	}
+	
+	public function add_schedule(){
+		$user_data = $this->session->userdata;
+		$start_day = $this->input->post('start_day');
+		$end_day = $this->input->post('end_day');
+		$start_time = $this->input->post('start_time');
+		$end_time = $this->input->post('end_time');
+		$this->load->model('model_restaurant');
+		$result = $this->model_restaurant->add_schedule($user_data['id'], $start_day, $end_day, $start_time, $end_time);
+		echo json_encode($result);
+	}
+	
+	public function remove_schedule(){
+		$id = $this->input->post('id');
+		$this->load->model('model_restaurant');
+		$result = $this->model_restaurant->remove_schedule($id);
+		echo $result;
 	}
 	
 	public function get_tables(){

@@ -177,10 +177,11 @@ class Model_restaurant extends CI_Model {
 	
 	public function create_restaurant_username($name){
 		$name = $this->clean($name);
-		$cnt = 1;
+		$cnt = 0;
 		$exist = true;
 		while($exist){
-			$this->db->where ( 'restaurant_username', $name.$cnt );
+			$val = ($cnt == 0) ? "":$cnt;
+			$this->db->where ( 'restaurant_username', $name.$val );
 			$query = $this->db->get ( 'restaurants' );
 			if ($query->num_rows () > 0) {
 				$cnt++;
@@ -188,7 +189,7 @@ class Model_restaurant extends CI_Model {
 				$exist = false;
 			}
 		}
-		return $name.$cnt;
+		return $name.$val;
 	}
 	
 	function clean($string) {
@@ -437,6 +438,45 @@ class Model_restaurant extends CI_Model {
 			$table_id = $this->maxValueInArray($data, "table_id");
 		}
 		return $table_id;
+	}
+	
+	public function get_schedule($restaurant_id){
+		$this->db->select('*');
+		$this->db->where('restaurant_id',$restaurant_id);
+		$query = $this->db->get('restaurant_schedule');
+		$result = $query->result();
+		return $result;
+	}
+	
+	public function add_schedule($restaurant_id, $start_day, $end_day, $start_time, $end_time){
+		$data = array(
+			'restaurant_id'=>$restaurant_id,
+			'start_day'=>$start_day,
+			'end_day'=>$end_day,
+			'start_time'=>$start_time,
+			'end_time'=>$end_time
+		);
+		$this->db->insert('restaurant_schedule',$data);
+		if ($this->db->affected_rows () > 0) {
+			return array(
+				"id"=>$this->db->insert_id(),
+				"success"=>true
+			);
+		}
+		return array(
+				"id"=>0,
+				"success"=>false
+			);
+	}
+	
+	public function remove_schedule($id){
+		$array = array('id=' => $id);
+		$this->db->where($array);
+		$this->db->delete ( 'restaurant_schedule' );
+		if ($this->db->affected_rows () > 0) {
+			return true;
+		}
+		return false;
 	}
 	
 	public function maxValueInArray($array, $keyToSearch){

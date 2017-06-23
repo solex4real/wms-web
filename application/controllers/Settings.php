@@ -28,6 +28,7 @@ class Settings extends CI_Controller {
 			$this->load->model('Model_servers');
 			$page_data = $this->Model_restaurant->get_html_data($user_data['id']);
 			$servers = $this->Model_servers->get_servers($user_data['id']);
+			$schedule = $this->Model_restaurant->get_schedule($user_data['id']);
 			$data = array(
 					'user_data' => $user_data,
 					'user_id' => $user_data['id'],
@@ -36,7 +37,8 @@ class Settings extends CI_Controller {
 					'upload'=> '0',
 					'icon_path'=>$user_data['icon_path'],
 					'servers'=>$servers,
-					'page_data' => $page_data
+					'page_data' => $page_data,
+					'schedule' => $schedule
 			);
 			$this->load->view('settings',$data);
 			//echo print_r($this->session->userdata);

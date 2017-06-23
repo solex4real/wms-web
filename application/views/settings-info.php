@@ -132,6 +132,7 @@
                                     </div>
 									
 									<br/>
+								
 									
 								<div class="input-group">
 									<span class="input-group-addon"><i class="md md-query-builder"></i></span>
@@ -174,7 +175,26 @@
 													<option value="Saturday">Saturday</option>
 												</select>
 									</div>
+									<div class="col-sm-2">
+										<button class="btn btn-default btn-sm" id="add-schedule" onclick="add_schedule()"><i class='md md-add'>Add</i></button>
+									</div>
                                 </div>
+								
+								<div class="input-group m-t-5 m-l-20" id="schedule-list">
+									<?php
+										foreach($schedule as $row){
+											$start_day = strtoupper($row->start_day);
+											$end_day = strtoupper($row->end_day);
+											$start_time = date("g:i a", strtotime($row->start_time));
+											$end_time = date("g:i a", strtotime($row->end_time));
+											echo "<div class='chip'>"
+														.$start_day." - ".$end_day." ".$start_time." - ".$end_time.
+														//MONDAY - FRIDAY 10AM-6PM
+														"<span class='closebtn' onclick='remove_schedule(this,".$row->id.")'>&times;</span>".
+													"</div>";
+										}
+									?>
+								</div>
 								
 									<br/>
 									

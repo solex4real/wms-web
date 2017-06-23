@@ -49,7 +49,7 @@
 							</div>
 
 							<input type="hidden" id="getStart" /> <input type="hidden"
-								id="getEnd" />
+								id="getEnd" /> <input type="hidden" id="getAllDay" />
 						</form>
 					</div>
 
@@ -191,11 +191,16 @@
 						
                    //events: events_data,
                     //On Day Select
-                    select: function(start, end, allDay) {
+                    select: function(start, end, jsEvent, view) {
                         $('#addNew-event').modal('show');   
                         $('#addNew-event input:text').val('');
                         $('#getStart').val(start);
                         $('#getEnd').val(end);
+						allDay = ((end - start)==86400000) ? "1":"";
+						//console.log("Start: "+start+" End: "+end+" Diff: "+(start - end));
+						
+						var val = allDay ? "1":"";
+						$('#getAllDay').val(val);
                     },
 
                     //Update Events
@@ -406,10 +411,11 @@
                     if (eventName != '') {
                     	 start = formatDate($('#getStart').val());
                     	 end = formatDate($('#getEnd').val());
+						 allDay = $('#getAllDay').val();
                     	 $.ajax({
                     	 url:  "<?php echo base_url(); ?>"+"Calendar/event_add" ,
                     	 data: {'title':eventName,'className':tagColor,'start':start,
-                        	 'end':end,'tag':eventTag,'restaurant_id':restaurant_id,'allDay':"1",
+                        	 'end':end,'tag':eventTag,'restaurant_id':restaurant_id,'allDay':allDay,
                         	 'server_id':user_id,'id':"1",
 							 '<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
 							 },
@@ -425,7 +431,7 @@
                                  start: $('#getStart').val(),
                                  end:  $('#getEnd').val(),
 								 tag: eventTag,
-                                 allDay: true,
+                                 allDay: (allDay == "1"),
                                  className: tagColor
                                  },false ); //Stick the event
                     	 }else{

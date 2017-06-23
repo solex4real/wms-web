@@ -295,42 +295,10 @@ $(document).ready(function(){
 	//Parse online reservation data
 	var len = Object.keys(reservation_data).length;
 	data1 = [];
-	for(i = 0; i < len; i++){
-		
-		var str_date = reservation_data[i].reservation_time;
-		var str_total = reservation_data[i].reservation_total;
-		var date = str_date.split(" ");
-		var val_date = date[0].split("-");
-		var val_year = val_date[0];
-		var val_month = val_date[1];
-		var val_day = val_date[2];
-		//Time Value
-		var val_time = date[1].split(":"); 
-		var val_hour = val_time[0]; 
-		var val_minute = val_time[1]; 
-		data1.push([gd(val_year, val_month, val_day, val_hour, val_minute), str_total]);
-		
-	}
-	//Parse guest reservation data
 	data2 = [];
-	var len = Object.keys(reservation_data_guest).length;
-	for(i = 0; i < len; i++){
-		
-		var str_date = reservation_data_guest[i].reservation_time;
-		var str_total = reservation_data_guest[i].reservation_total;
-		var date = str_date.split(" ");
-		var val_date = date[0].split("-");
-		var val_year = val_date[0];
-		var val_month = val_date[1];
-		var val_day = val_date[2];
-		//Time Value
-		var val_time = date[1].split(":"); 
-		var val_hour = val_time[0]; 
-		var val_minute = val_time[1]; 
-		data2.push([gd(val_year, val_month, val_day, val_hour, val_minute), str_total]);
-		
-	}
-	
+	data3 = [];
+	updatePlotRange("Today");
+
 	//alert(reservation_data.result);
 	/*
 	 var data1 = [
@@ -345,18 +313,18 @@ $(document).ready(function(){
     ];
 	*/
 	/*
-    var data2 = [
-        [gd(2013, 1, 2), 1674.15], [gd(2013, 1, 3), 1680.15], [gd(2013, 1, 4), 1643.8],
-        [gd(2013, 1, 7), 1652.25], [gd(2013, 1, 8), 1640.3], [gd(2013, 1, 9), 1652.75],
-        [gd(2013, 1, 10), 1652.25], [gd(2013, 1, 11), 1664.2], [gd(2013, 1, 14), 1660.7],
-        [gd(2013, 1, 15), 1664.7], [gd(2013, 1, 16), 1673.65], [gd(2013, 1, 17), 1671.15],
-        [gd(2013, 1, 18), 1682.1], [gd(2013, 1, 21), 1680.65], [gd(2013, 1, 22), 1685.1],
-        [gd(2013, 1, 23), 1684.6], [gd(2013, 1, 24), 1670.65], [gd(2013, 1, 25), 1664],
-        [gd(2013, 1, 28), 1652.75], [gd(2013, 1, 29), 1655.25], [gd(2013, 1, 30), 1659.7],
-        [gd(2013, 1, 31), 1668.2]
+    var data3 = [
+        [gd(2017, 1, 2), 1674.15], [gd(2017, 1, 3), 1680.15], [gd(2017, 1, 4), 1643.8],
+        [gd(2017, 1, 7), 1652.25], [gd(2017, 1, 8), 1640.3], [gd(2017, 1, 9), 1652.75],
+        [gd(2017, 1, 10), 1652.25], [gd(2017, 1, 11), 1664.2], [gd(2017, 1, 14), 1660.7],
+        [gd(2017, 1, 15), 1664.7], [gd(2017, 1, 16), 1673.65], [gd(2017, 1, 17), 1671.15],
+        [gd(2017, 1, 18), 1682.1], [gd(2017, 1, 21), 1680.65], [gd(2017, 1, 22), 1685.1],
+        [gd(2017, 1, 23), 1684.6], [gd(2017, 1, 24), 1670.65], [gd(2017, 1, 25), 1664],
+        [gd(2017, 1, 28), 1652.75], [gd(2017, 1, 29), 1655.25], [gd(2017, 1, 30), 1659.7],
+        [gd(2017, 1, 31), 1668.2]
     ];
-
 	*/
+	
 	
     dataset = [
         {
@@ -382,6 +350,21 @@ $(document).ready(function(){
             color: "#FFC107",
             points: {
                 fillColor: "#FFC107",
+                show: true,
+                radius: 2
+            },
+            lines: {
+                show: true,
+                lineWidth: 1
+            }
+        },
+		{
+            label: "Walk Ins",
+            data: data3,
+            xaxis:2,
+            color: "#455A64",
+            points: {
+                fillColor: "#455A64",
                 show: true,
                 radius: 2
             },
@@ -487,6 +470,7 @@ function updatePlotRange(range){
 			json = JSON.parse(json);
 			reservation_data = json.result;
 			reservation_data_guest = json.result_guest;
+			reservation_data_walkin = json.result_walkin;
 			var len = Object.keys(reservation_data).length;
 			data1 = [];
 			for(i = 0; i < len; i++){
@@ -519,9 +503,27 @@ function updatePlotRange(range){
 				var val_minute = val_time[1]; 
 				data2.push([gd(val_year, val_month, val_day, val_hour, val_minute), str_total]);
 			}
+			data3 = [];
+			var len = Object.keys(reservation_data_walkin).length;
+			for(i = 0; i < len; i++){
+				var str_date = reservation_data_walkin[i].reservation_time;
+				var str_total = reservation_data_walkin[i].reservation_total;
+				var date = str_date.split(" ");
+				var val_date = date[0].split("-");
+				var val_year = val_date[0];
+				var val_month = val_date[1];
+				var val_day = val_date[2];
+				//Time Value
+				var val_time = date[1].split(":"); 
+				var val_hour = val_time[0]; 
+				var val_minute = val_time[1]; 
+				data3.push([gd(val_year, val_month, val_day, val_hour, val_minute), str_total]);
+			}
+			
 			//Modify Data set
 			dataset[0].data = data1;
 			dataset[1].data = data2;
+			dataset[2].data = data3;
 			switch(range){
 				case 'Today':
 					options.xaxes[1].timeformat = "%l:%m %p";

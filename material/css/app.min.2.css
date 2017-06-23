@@ -783,6 +783,82 @@ body.login-content:before {
   left: 0;
 }
 
+@media (min-width: 768px) {
+  .profile {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+  }
+}
+@media (max-width: 767px) {
+  .profile {
+    margin-top: 75px;
+    text-align: center;
+  }
+}
+
+.profile__img {
+  padding: 5px;
+  position: relative;
+}
+.profile__img img {
+  max-width: 200px;
+  border-radius: 2px;
+}
+@media (max-width: 767px) {
+  .profile__img img {
+    margin: -55px 0 -10px;
+    width: 120px;
+    border: 5px solid #FFFFFF;
+    border-radius: 50%;
+  }
+}
+
+.profile__img__edit {
+  position: absolute;
+  font-size: 1.2rem;
+  top: 15px;
+  left: 15px;
+  background-color: rgba(0, 0, 0, 0.4);
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  border-radius: 50%;
+  text-align: center;
+  color: #FFFFFF;
+}
+.profile__img__edit:hover {
+  background-color: rgba(0, 0, 0, 0.65);
+  color: #FFFFFF;
+}
+
+.profile__info {
+  padding: 30px;
+}
+
+
+.icon-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.icon-list > li {
+  position: relative;
+  padding: 0.3rem 0;
+}
+.icon-list > li address {
+  display: inline-block;
+  vertical-align: top;
+}
+.icon-list > li > i {
+  width: 2.5rem;
+  text-align: center;
+  font-size: 1.25rem;
+  top: 0.12rem;
+  position: relative;
+  margin-left: -0.5rem;
+}
+
 @media (max-width: 767px) {
   .c-timeline {
     background: #edecec;
